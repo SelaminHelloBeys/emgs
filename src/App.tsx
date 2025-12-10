@@ -17,6 +17,7 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SmartboardPage } from "./pages/SmartboardPage";
+import { TeacherContentUploadPage } from "./pages/TeacherContentUploadPage";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -47,9 +48,9 @@ const App = () => (
               <Route path="/announcements" element={<AnnouncementsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/smartboard" element={<SmartboardPage />} />
+              <Route path="/upload" element={<TeacherContentUploadPage />} />
               
               {/* Placeholder routes for other features */}
-              <Route path="/upload" element={<Dashboard />} />
               <Route path="/my-classes" element={<Dashboard />} />
               <Route path="/student-tracking" element={<Dashboard />} />
               <Route path="/users" element={<Dashboard />} />
