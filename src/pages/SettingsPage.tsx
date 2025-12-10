@@ -1,53 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
   Bell,
   Shield,
-  Moon,
   Globe,
   LogOut,
   ChevronRight,
   Mail,
   Phone,
   Building2,
+  UserCog,
+  Check,
 } from 'lucide-react';
 import { roleLabels } from '@/types/user';
+import { cn } from '@/lib/utils';
 
 export const SettingsPage: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  
+  const [notifications, setNotifications] = useState({
+    email: true,
+    push: true,
+    announcements: true,
+    homework: true,
+  });
 
   const handleLogout = () => {
     logout();
     navigate('/auth');
   };
 
-  const settingsSections = [
-    {
-      title: 'Bildirimler',
-      items: [
-        { icon: Bell, label: 'Bildirim Tercihleri', description: 'E-posta ve uygulama bildirimleri' },
-        { icon: Mail, label: 'E-posta Bildirimleri', description: 'Haftalık özet ve duyurular' },
-      ]
-    },
-    {
-      title: 'Güvenlik',
-      items: [
-        { icon: Shield, label: 'Şifre Değiştir', description: 'Hesap güvenliği' },
-        { icon: Phone, label: 'İki Faktörlü Doğrulama', description: 'Ekstra güvenlik katmanı' },
-      ]
-    },
-    {
-      title: 'Tercihler',
-      items: [
-        { icon: Globe, label: 'Dil', description: 'Türkçe' },
-      ]
-    },
-  ];
+  const isAdminRole = user?.role && ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'].includes(user.role);
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -77,38 +66,138 @@ export const SettingsPage: React.FC = () => {
               )}
             </div>
           </div>
-          <Button variant="outline" size="sm">
-            Düzenle
-          </Button>
         </div>
       </Card>
 
-      {/* Settings Sections */}
-      {settingsSections.map((section) => (
-        <div key={section.title} className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground px-1">{section.title}</h3>
+      {/* Notification Settings */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground px-1">Bildirimler</h3>
+        <Card variant="default" className="divide-y divide-border/50">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Mail className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-medium">E-posta Bildirimleri</p>
+                <p className="text-sm text-muted-foreground">Haftalık özet ve duyurular</p>
+              </div>
+            </div>
+            <Switch
+              checked={notifications.email}
+              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, email: checked }))}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Bell className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-medium">Anlık Bildirimler</p>
+                <p className="text-sm text-muted-foreground">Uygulama içi bildirimler</p>
+              </div>
+            </div>
+            <Switch
+              checked={notifications.push}
+              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, push: checked }))}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-medium">Duyuru Bildirimleri</p>
+                <p className="text-sm text-muted-foreground">Okul duyuruları</p>
+              </div>
+            </div>
+            <Switch
+              checked={notifications.announcements}
+              onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, announcements: checked }))}
+            />
+          </div>
+
+          {user?.role === 'ogrenci' && (
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                  <Check className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">Ödev Hatırlatmaları</p>
+                  <p className="text-sm text-muted-foreground">Yaklaşan ödev bildirimleri</p>
+                </div>
+              </div>
+              <Switch
+                checked={notifications.homework}
+                onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, homework: checked }))}
+              />
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Preferences */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-muted-foreground px-1">Tercihler</h3>
+        <Card variant="default" className="divide-y divide-border/50">
+          <button className="w-full flex items-center gap-4 p-4 hover:bg-surface-secondary transition-colors first:rounded-t-2xl last:rounded-b-2xl">
+            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+              <Globe className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium">Dil</p>
+              <p className="text-sm text-muted-foreground">Türkçe</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </Card>
+      </div>
+
+      {/* Account Management - Extended for admin roles */}
+      {isAdminRole && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground px-1">Hesap Yönetimi</h3>
           <Card variant="default" className="divide-y divide-border/50">
-            {section.items.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={index}
-                  className="w-full flex items-center gap-4 p-4 hover:bg-surface-secondary transition-colors first:rounded-t-2xl last:rounded-b-2xl"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium">{item.label}</p>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </button>
-              );
-            })}
+            <button className="w-full flex items-center gap-4 p-4 hover:bg-surface-secondary transition-colors first:rounded-t-2xl">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Shield className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium">Şifre Değiştir</p>
+                <p className="text-sm text-muted-foreground">Hesap güvenliği</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+            
+            <button className="w-full flex items-center gap-4 p-4 hover:bg-surface-secondary transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Phone className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium">İki Faktörlü Doğrulama</p>
+                <p className="text-sm text-muted-foreground">Ekstra güvenlik katmanı</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+
+            <button className="w-full flex items-center gap-4 p-4 hover:bg-surface-secondary transition-colors last:rounded-b-2xl">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <UserCog className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium">Hesap Bilgileri</p>
+                <p className="text-sm text-muted-foreground">Profil düzenleme</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
           </Card>
         </div>
-      ))}
+      )}
 
       {/* Logout */}
       <Card variant="default" className="p-4">
