@@ -32,7 +32,7 @@ const recentAnnouncements = [
 ];
 
 export const SchoolAdminDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   return (
     <div className="space-y-8">
@@ -40,7 +40,7 @@ export const SchoolAdminDashboard: React.FC = () => {
       <div className="flex items-start justify-between animate-slide-up">
         <div>
           <h1 className="text-3xl font-bold mb-2">Okul Yönetimi</h1>
-          <p className="text-muted-foreground">{user?.schoolName}</p>
+          <p className="text-muted-foreground">{profile?.school_name || 'Okul'}</p>
         </div>
         <Button variant="apple" className="gap-2">
           <Plus className="w-4 h-4" />

@@ -21,7 +21,7 @@ import { roleLabels } from '@/types/user';
 import { cn } from '@/lib/utils';
 
 export const SettingsPage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
   
   const [notifications, setNotifications] = useState({
@@ -31,12 +31,12 @@ export const SettingsPage: React.FC = () => {
     homework: true,
   });
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/auth');
   };
 
-  const isAdminRole = user?.role && ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'].includes(user.role);
+  const isAdminRole = role && ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'].includes(role);
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -52,16 +52,16 @@ export const SettingsPage: React.FC = () => {
             <User className="w-8 h-8 text-primary" />
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-semibold">{user?.name}</h2>
+            <h2 className="text-xl font-semibold">{profile?.name || 'Kullanıcı'}</h2>
             <p className="text-muted-foreground">{user?.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                {user?.role && roleLabels[user.role]}
+                {role && roleLabels[role]}
               </span>
-              {user?.schoolName && (
+              {profile?.school_name && (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Building2 className="w-3 h-3" />
-                  {user.schoolName}
+                  {profile.school_name}
                 </span>
               )}
             </div>
@@ -121,7 +121,7 @@ export const SettingsPage: React.FC = () => {
             />
           </div>
 
-          {user?.role === 'ogrenci' && (
+          {role === 'ogrenci' && (
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">

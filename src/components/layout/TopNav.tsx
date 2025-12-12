@@ -25,11 +25,11 @@ interface TopNavProps {
 }
 
 export const TopNav: React.FC<TopNavProps> = ({ onMenuClick }) => {
-  const { user, logout } = useAuth();
+  const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/auth');
   };
 
@@ -81,9 +81,9 @@ export const TopNav: React.FC<TopNavProps> = ({ onMenuClick }) => {
                   <User className="h-4 w-4 text-primary" />
                 </div>
                 <div className="hidden sm:flex flex-col items-start">
-                  <span className="text-sm font-medium">{user?.name}</span>
+                  <span className="text-sm font-medium">{profile?.name || user?.email}</span>
                   <span className="text-xs text-muted-foreground">
-                    {user?.role && roleLabels[user.role]}
+                    {role && roleLabels[role]}
                   </span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -91,7 +91,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onMenuClick }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
-                <p className="text-sm font-medium">{user?.name}</p>
+                <p className="text-sm font-medium">{profile?.name || 'Kullanıcı'}</p>
                 <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
               <DropdownMenuSeparator />
