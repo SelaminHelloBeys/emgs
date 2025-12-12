@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types/user';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -76,11 +75,11 @@ const navItems: NavItem[] = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
-  const { user } = useAuth();
+  const { role, profile } = useAuth();
   const location = useLocation();
 
   const filteredItems = navItems.filter(item => 
-    user?.role && item.roles.includes(user.role)
+    role && item.roles.includes(role)
   );
 
   return (
@@ -130,11 +129,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         </nav>
 
         {/* School info */}
-        {!collapsed && user?.schoolName && (
+        {!collapsed && profile?.school_name && (
           <div className="pt-4 border-t border-border/50">
             <div className="px-3 py-2">
               <p className="text-xs text-muted-foreground">Okul</p>
-              <p className="text-sm font-medium truncate">{user.schoolName}</p>
+              <p className="text-sm font-medium truncate">{profile.school_name}</p>
             </div>
           </div>
         )}

@@ -35,13 +35,13 @@ const classPerformance = [
 ];
 
 export const PrincipalDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   return (
     <div className="space-y-8">
       <div className="animate-slide-up">
         <h1 className="text-3xl font-bold mb-2">Okul Performans Paneli</h1>
-        <p className="text-muted-foreground">{user?.schoolName} - Müdür Görünümü</p>
+        <p className="text-muted-foreground">{profile?.school_name || 'Okul'} - Müdür Görünümü</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">

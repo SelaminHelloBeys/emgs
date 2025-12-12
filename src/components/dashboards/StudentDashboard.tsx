@@ -36,17 +36,17 @@ const stats = [
 ];
 
 export const StudentDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
       <div className="animate-slide-up">
         <h1 className="text-3xl font-bold mb-2">
-          Merhaba, {user?.name?.split(' ')[0]} 👋
+          Merhaba, {profile?.name?.split(' ')[0] || 'Öğrenci'} 👋
         </h1>
         <p className="text-muted-foreground">
-          Bugün öğrenmeye hazır mısın? {user?.class} sınıfı
+          Bugün öğrenmeye hazır mısın? {profile?.class && `${profile.class} sınıfı`}
         </p>
       </div>
 
