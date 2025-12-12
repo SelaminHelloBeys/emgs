@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAnnouncements } from '@/hooks/useAnnouncements';
 import {
   Megaphone,
   Bell,
@@ -28,18 +29,11 @@ import {
   CheckCircle,
   Plus,
   FileText,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface Announcement {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-  type: 'info' | 'warning' | 'success';
-  source: string;
-  isNew: boolean;
-}
+import { formatDistanceToNow } from 'date-fns';
+import { tr } from 'date-fns/locale';
 
 const typeConfig = {
   info: { icon: Info, color: 'text-apple-blue bg-apple-blue/10', borderColor: 'border-l-apple-blue' },
@@ -47,37 +41,36 @@ const typeConfig = {
   success: { icon: CheckCircle, color: 'text-apple-green bg-apple-green/10', borderColor: 'border-l-apple-green' },
 };
 
-// Roles that can create announcements
-const canCreateRoles = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'];
-
 export const AnnouncementsPage: React.FC = () => {
-  const { user } = useAuth();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const { canCreateAnnouncements } = useAuth();
+  const { announcements, isLoading, createAnnouncement } = useAnnouncements();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newType, setNewType] = useState<'info' | 'warning' | 'success'>('info');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canCreate = user?.role && canCreateRoles.includes(user.role);
-
-  const handleCreateAnnouncement = () => {
+  const handleCreateAnnouncement = async () => {
     if (!newTitle.trim() || !newContent.trim()) return;
 
-    const newAnnouncement: Announcement = {
-      id: Date.now(),
-      title: newTitle,
-      content: newContent,
-      date: 'Az önce',
-      type: newType,
-      source: user?.name || 'Yönetim',
-      isNew: true,
-    };
+    setIsSubmitting(true);
+    const { error } = await createAnnouncement(newTitle, newContent, newType);
+    setIsSubmitting(false);
 
-    setAnnouncements([newAnnouncement, ...announcements]);
-    setNewTitle('');
-    setNewContent('');
-    setNewType('info');
-    setIsDialogOpen(false);
+    if (!error) {
+      setNewTitle('');
+      setNewContent('');
+      setNewType('info');
+      setIsDialogOpen(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: tr });
+    } catch {
+      return dateString;
+    }
   };
 
   return (
@@ -88,7 +81,7 @@ export const AnnouncementsPage: React.FC = () => {
           <p className="text-muted-foreground">Okul ve sınıf duyuruları</p>
         </div>
         <div className="flex gap-2">
-          {canCreate && (
+          {canCreateAnnouncements && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="apple" className="gap-2">
@@ -133,11 +126,18 @@ export const AnnouncementsPage: React.FC = () => {
                   </div>
                   <Button
                     variant="apple"
-                    className="w-full"
+                    className="w-full gap-2"
                     onClick={handleCreateAnnouncement}
-                    disabled={!newTitle.trim() || !newContent.trim()}
+                    disabled={!newTitle.trim() || !newContent.trim() || isSubmitting}
                   >
-                    Duyuruyu Yayınla
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Yayınlanıyor...
+                      </>
+                    ) : (
+                      'Duyuruyu Yayınla'
+                    )}
                   </Button>
                 </div>
               </DialogContent>
@@ -150,15 +150,22 @@ export const AnnouncementsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      )}
+
       {/* Empty State */}
-      {announcements.length === 0 && (
+      {!isLoading && announcements.length === 0 && (
         <Card variant="elevated" className="p-12 text-center animate-fade-in">
           <div className="w-16 h-16 rounded-2xl bg-muted mx-auto flex items-center justify-center mb-4">
             <FileText className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold mb-2">Duyuru bulunamadı</h3>
           <p className="text-muted-foreground mb-4">
-            {canCreate 
+            {canCreateAnnouncements 
               ? 'İlk duyurunuzu oluşturmak için yukarıdaki butonu kullanın.'
               : 'Henüz yayınlanmış bir duyuru yok.'}
           </p>
@@ -166,7 +173,7 @@ export const AnnouncementsPage: React.FC = () => {
       )}
 
       {/* Announcements List */}
-      {announcements.length > 0 && (
+      {!isLoading && announcements.length > 0 && (
         <div className="space-y-4 stagger-children">
           {announcements.map((announcement) => {
             const config = typeConfig[announcement.type];
@@ -191,21 +198,16 @@ export const AnnouncementsPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold">{announcement.title}</h3>
-                      {announcement.isNew && (
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                          Yeni
-                        </span>
-                      )}
                     </div>
                     <p className="text-muted-foreground mb-3">{announcement.content}</p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Megaphone className="w-4 h-4" />
-                        {announcement.source}
+                        {announcement.creator_name}
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {announcement.date}
+                        {formatDate(announcement.created_at)}
                       </span>
                     </div>
                   </div>

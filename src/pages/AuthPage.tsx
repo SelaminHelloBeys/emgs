@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, roleLabels, roleDescriptions } from '@/types/user';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { roleLabels, roleDescriptions } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,11 +9,16 @@ import {
   BookOpen, 
   Backpack,
   ArrowRight,
+  ArrowLeft,
   Check,
   AlertCircle,
   Loader2,
+  Mail,
+  Lock,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const roleIcons: Record<'ogretmen' | 'ogrenci', React.ElementType> = {
   ogretmen: BookOpen,
@@ -26,32 +31,52 @@ const roleColors: Record<'ogretmen' | 'ogrenci', string> = {
 };
 
 export const AuthPage: React.FC = () => {
-  const [step, setStep] = useState<'login' | 'oauth' | 'role' | 'teacher-verify'>('login');
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [step, setStep] = useState<'credentials' | 'role' | 'teacher-verify'>('credentials');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [selectedRole, setSelectedRole] = useState<'ogretmen' | 'ogrenci' | null>(null);
   const [schoolCode, setSchoolCode] = useState('');
   const [verificationError, setVerificationError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { signIn, signUp, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  React.useEffect(() => {
-    if (isAuthenticated) {
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
-  const handleGoogleLogin = () => {
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast.error('E-posta ve şifre gerekli');
+      return;
+    }
+
     setIsLoading(true);
-    // Simulate OAuth redirect
-    setStep('oauth');
-    
-    // Simulate OAuth callback after 1.5 seconds
-    setTimeout(() => {
-      setEmail('kullanici@okul.edu.tr');
-      setIsLoading(false);
-      setStep('role');
-    }, 1500);
+    const { error } = await signIn(email, password);
+    setIsLoading(false);
+
+    if (error) {
+      toast.error(error.message || 'Giriş yapılırken hata oluştu');
+      return;
+    }
+
+    navigate('/dashboard');
+  };
+
+  const handleContinueToRole = () => {
+    if (!email || !password) {
+      toast.error('E-posta ve şifre gerekli');
+      return;
+    }
+    if (password.length < 6) {
+      toast.error('Şifre en az 6 karakter olmalı');
+      return;
+    }
+    setStep('role');
   };
 
   const handleRoleSelect = (role: 'ogretmen' | 'ogrenci') => {
@@ -59,14 +84,13 @@ export const AuthPage: React.FC = () => {
     setVerificationError('');
   };
 
-  const handleContinue = () => {
+  const handleContinueAfterRole = () => {
     if (!selectedRole) return;
 
     if (selectedRole === 'ogretmen') {
       setStep('teacher-verify');
     } else {
-      login(email, selectedRole);
-      navigate('/dashboard');
+      handleSignUp('ogrenci');
     }
   };
 
@@ -75,17 +99,37 @@ export const AuthPage: React.FC = () => {
       setVerificationError('Geçersiz okul kodu. Öğretmen olarak kayıt olamazsınız.');
       return;
     }
-    
-    login(email, 'ogretmen');
+    handleSignUp('ogretmen');
+  };
+
+  const handleSignUp = async (role: UserRole) => {
+    setIsLoading(true);
+    const { error } = await signUp(email, password, role, name || undefined);
+    setIsLoading(false);
+
+    if (error) {
+      toast.error(error.message || 'Kayıt olurken hata oluştu');
+      return;
+    }
+
+    toast.success('Hesap başarıyla oluşturuldu!');
     navigate('/dashboard');
   };
 
   const roles: ('ogretmen' | 'ogrenci')[] = ['ogrenci', 'ogretmen'];
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        {step === 'login' && (
+        {step === 'credentials' && (
           <div className="animate-fade-in text-center">
             {/* Logo */}
             <div className="mb-8">
@@ -96,76 +140,87 @@ export const AuthPage: React.FC = () => {
               <p className="text-xl text-muted-foreground">Education Material Gateway</p>
             </div>
 
-            {/* Login Card */}
+            {/* Auth Card */}
             <Card variant="elevated" className="max-w-md mx-auto p-8">
-              <h2 className="text-2xl font-semibold mb-2">Hoş Geldiniz</h2>
-              <p className="text-muted-foreground mb-8">
-                Eğitim platformuna giriş yapmak için devam edin
-              </p>
-
-              <Button
-                variant="apple"
-                size="xl"
-                className="w-full gap-3"
-                onClick={handleGoogleLogin}
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Google ile Giriş Yap
-              </Button>
-
-              <p className="text-xs text-muted-foreground mt-6">
-                Giriş yaparak kullanım koşullarını kabul etmiş olursunuz
-              </p>
-            </Card>
-          </div>
-        )}
-
-        {step === 'oauth' && (
-          <div className="animate-fade-in text-center">
-            <Card variant="elevated" className="max-w-md mx-auto p-8">
-              <div className="w-16 h-16 rounded-2xl bg-surface-secondary mx-auto flex items-center justify-center mb-6">
-                <svg className="w-8 h-8" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Google ile Bağlanılıyor</h2>
+              <h2 className="text-2xl font-semibold mb-2">
+                {mode === 'login' ? 'Hoş Geldiniz' : 'Hesap Oluştur'}
+              </h2>
               <p className="text-muted-foreground mb-6">
-                Lütfen bekleyin...
+                {mode === 'login' 
+                  ? 'Eğitim platformuna giriş yapın' 
+                  : 'Yeni bir hesap oluşturun'}
               </p>
-              <div className="flex justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+
+              <div className="space-y-4">
+                {mode === 'signup' && (
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Input
+                      placeholder="Adınız Soyadınız"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                )}
+                
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="E-posta adresiniz"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    placeholder="Şifreniz"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                <Button
+                  variant="apple"
+                  size="xl"
+                  className="w-full gap-2"
+                  onClick={mode === 'login' ? handleLogin : handleContinueToRole}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {mode === 'login' ? 'Giriş yapılıyor...' : 'Devam ediliyor...'}
+                    </>
+                  ) : (
+                    <>
+                      {mode === 'login' ? 'Giriş Yap' : 'Devam Et'}
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {mode === 'login' ? 'Hesabınız yok mu?' : 'Zaten hesabınız var mı?'}
+                  {' '}
+                  <button
+                    onClick={() => {
+                      setMode(mode === 'login' ? 'signup' : 'login');
+                      setStep('credentials');
+                    }}
+                    className="text-primary font-medium hover:underline"
+                  >
+                    {mode === 'login' ? 'Kayıt Ol' : 'Giriş Yap'}
+                  </button>
+                </p>
               </div>
             </Card>
           </div>
@@ -176,7 +231,7 @@ export const AuthPage: React.FC = () => {
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold mb-2">Rolünüzü Seçin</h2>
               <p className="text-muted-foreground">
-                {email} olarak giriş yapıyorsunuz
+                {email} olarak kayıt oluyorsunuz
               </p>
             </div>
 
@@ -223,19 +278,30 @@ export const AuthPage: React.FC = () => {
             <div className="flex justify-center gap-4">
               <Button
                 variant="ghost"
-                onClick={() => setStep('login')}
+                onClick={() => setStep('credentials')}
+                className="gap-2"
               >
+                <ArrowLeft className="w-4 h-4" />
                 Geri
               </Button>
               <Button
                 variant="apple"
                 size="lg"
-                disabled={!selectedRole}
-                onClick={handleContinue}
+                disabled={!selectedRole || isLoading}
+                onClick={handleContinueAfterRole}
                 className="gap-2"
               >
-                Devam Et
-                <ArrowRight className="w-4 h-4" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Kayıt yapılıyor...
+                  </>
+                ) : (
+                  <>
+                    Devam Et
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -267,44 +333,45 @@ export const AuthPage: React.FC = () => {
                       setSchoolCode(e.target.value);
                       setVerificationError('');
                     }}
-                    className="h-12 text-lg"
                   />
                 </div>
 
                 {verificationError && (
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-apple-red/10 text-apple-red">
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 text-destructive">
                     <AlertCircle className="w-5 h-5 shrink-0" />
                     <p className="text-sm">{verificationError}</p>
                   </div>
                 )}
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3">
                   <Button
                     variant="ghost"
+                    onClick={() => setStep('role')}
                     className="flex-1"
-                    onClick={() => {
-                      setStep('role');
-                      setSchoolCode('');
-                      setVerificationError('');
-                    }}
                   >
                     Geri
                   </Button>
                   <Button
                     variant="apple"
-                    className="flex-1"
                     onClick={handleTeacherVerification}
-                    disabled={!schoolCode}
+                    disabled={!schoolCode || isLoading}
+                    className="flex-1 gap-2"
                   >
-                    Doğrula
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Doğrulanıyor...
+                      </>
+                    ) : (
+                      <>
+                        Doğrula ve Kayıt Ol
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
             </Card>
-
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              Okul kodunuzu okulunuzun yönetiminden alabilirsiniz
-            </p>
           </div>
         )}
       </div>

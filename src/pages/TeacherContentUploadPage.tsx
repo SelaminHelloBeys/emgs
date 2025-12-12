@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLessons } from '@/hooks/useLessons';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
   Video,
   PlayCircle,
@@ -22,12 +25,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface UploadedFile {
-  name: string;
-  size: number;
-  type: string;
-}
+import { toast } from 'sonner';
 
 const subjects = [
   'Matematik',
@@ -53,92 +51,130 @@ const formatFileSize = (bytes: number) => {
 };
 
 export const TeacherContentUploadPage: React.FC = () => {
+  const { canCreateContent } = useAuth();
+  const { createLesson } = useLessons();
+  const navigate = useNavigate();
+  
   const [activeTab, setActiveTab] = useState('video');
   
   // Video lesson state
   const [videoTitle, setVideoTitle] = useState('');
   const [videoDescription, setVideoDescription] = useState('');
   const [videoSubject, setVideoSubject] = useState('');
-  const [videoFile, setVideoFile] = useState<UploadedFile | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUploading, setVideoUploading] = useState(false);
   const [videoSuccess, setVideoSuccess] = useState(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Shorts state
   const [shortTitle, setShortTitle] = useState('');
   const [shortSubject, setShortSubject] = useState('');
-  const [shortFile, setShortFile] = useState<UploadedFile | null>(null);
+  const [shortFile, setShortFile] = useState<File | null>(null);
   const [shortUploading, setShortUploading] = useState(false);
   const [shortSuccess, setShortSuccess] = useState(false);
+  const shortInputRef = useRef<HTMLInputElement>(null);
 
   // PDF state
   const [pdfTitle, setPdfTitle] = useState('');
   const [pdfDescription, setPdfDescription] = useState('');
-  const [pdfFile, setPdfFile] = useState<UploadedFile | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUploading, setPdfUploading] = useState(false);
   const [pdfSuccess, setPdfSuccess] = useState(false);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+
+  // Check permission
+  React.useEffect(() => {
+    if (!canCreateContent) {
+      toast.error('Bu sayfaya erişim yetkiniz yok');
+      navigate('/dashboard');
+    }
+  }, [canCreateContent, navigate]);
 
   const handleFileDrop = (
     e: React.DragEvent<HTMLDivElement>,
-    setFile: React.Dispatch<React.SetStateAction<UploadedFile | null>>,
+    setFile: React.Dispatch<React.SetStateAction<File | null>>,
     acceptedTypes: string[]
   ) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file && acceptedTypes.some(type => file.type.includes(type) || file.name.endsWith(type))) {
-      setFile({ name: file.name, size: file.size, type: file.type });
+      setFile(file);
+    } else {
+      toast.error('Geçersiz dosya türü');
     }
   };
 
   const handleFileSelect = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFile: React.Dispatch<React.SetStateAction<UploadedFile | null>>
+    setFile: React.Dispatch<React.SetStateAction<File | null>>
   ) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFile({ name: file.name, size: file.size, type: file.type });
+      setFile(file);
     }
   };
 
-  const simulateUpload = (
-    setUploading: React.Dispatch<React.SetStateAction<boolean>>,
-    setSuccess: React.Dispatch<React.SetStateAction<boolean>>
-  ) => {
-    setUploading(true);
-    setTimeout(() => {
-      setUploading(false);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    }, 2000);
-  };
+  const handleVideoUpload = async () => {
+    if (!videoTitle || !videoSubject || !videoFile) return;
+    
+    setVideoUploading(true);
+    const { error } = await createLesson(videoTitle, videoSubject, 'video', videoFile, videoDescription);
+    setVideoUploading(false);
 
-  const handleVideoUpload = () => {
-    if (videoTitle && videoSubject && videoFile) {
-      simulateUpload(setVideoUploading, setVideoSuccess);
+    if (!error) {
+      setVideoSuccess(true);
+      setVideoTitle('');
+      setVideoDescription('');
+      setVideoSubject('');
+      setVideoFile(null);
+      setTimeout(() => setVideoSuccess(false), 3000);
     }
   };
 
-  const handleShortUpload = () => {
-    if (shortTitle && shortSubject && shortFile) {
-      simulateUpload(setShortUploading, setShortSuccess);
+  const handleShortUpload = async () => {
+    if (!shortTitle || !shortSubject || !shortFile) return;
+    
+    setShortUploading(true);
+    const { error } = await createLesson(shortTitle, shortSubject, 'short', shortFile);
+    setShortUploading(false);
+
+    if (!error) {
+      setShortSuccess(true);
+      setShortTitle('');
+      setShortSubject('');
+      setShortFile(null);
+      setTimeout(() => setShortSuccess(false), 3000);
     }
   };
 
-  const handlePdfUpload = () => {
-    if (pdfTitle && pdfFile) {
-      simulateUpload(setPdfUploading, setPdfSuccess);
+  const handlePdfUpload = async () => {
+    if (!pdfTitle || !pdfFile) return;
+    
+    setPdfUploading(true);
+    const { error } = await createLesson(pdfTitle, 'Genel', 'pdf', pdfFile, pdfDescription);
+    setPdfUploading(false);
+
+    if (!error) {
+      setPdfSuccess(true);
+      setPdfTitle('');
+      setPdfDescription('');
+      setPdfFile(null);
+      setTimeout(() => setPdfSuccess(false), 3000);
     }
   };
 
   const DropZone = ({
     file,
     setFile,
+    inputRef,
     accept,
     acceptedTypes,
     icon: Icon,
     description,
   }: {
-    file: UploadedFile | null;
-    setFile: React.Dispatch<React.SetStateAction<UploadedFile | null>>;
+    file: File | null;
+    setFile: React.Dispatch<React.SetStateAction<File | null>>;
+    inputRef: React.RefObject<HTMLInputElement>;
     accept: string;
     acceptedTypes: string[];
     icon: React.ElementType;
@@ -180,21 +216,28 @@ export const TeacherContentUploadPage: React.FC = () => {
             <p className="font-medium">Dosyayı buraya sürükleyin</p>
             <p className="text-sm text-muted-foreground">{description}</p>
           </div>
-          <label>
-            <input
-              type="file"
-              accept={accept}
-              onChange={(e) => handleFileSelect(e, setFile)}
-              className="hidden"
-            />
-            <Button variant="outline" size="sm" asChild>
-              <span className="cursor-pointer">Dosya Seç</span>
-            </Button>
-          </label>
+          <input
+            ref={inputRef}
+            type="file"
+            accept={accept}
+            onChange={(e) => handleFileSelect(e, setFile)}
+            className="hidden"
+          />
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+          >
+            Dosya Seç
+          </Button>
         </div>
       )}
     </div>
   );
+
+  if (!canCreateContent) {
+    return null;
+  }
 
   return (
     <div className="space-y-8 max-w-3xl">
@@ -263,6 +306,7 @@ export const TeacherContentUploadPage: React.FC = () => {
                 <DropZone
                   file={videoFile}
                   setFile={setVideoFile}
+                  inputRef={videoInputRef}
                   accept=".mp4,.mov"
                   acceptedTypes={['video/mp4', 'video/quicktime', '.mp4', '.mov']}
                   icon={Video}
@@ -338,6 +382,7 @@ export const TeacherContentUploadPage: React.FC = () => {
                 <DropZone
                   file={shortFile}
                   setFile={setShortFile}
+                  inputRef={shortInputRef}
                   accept=".mp4,.mov"
                   acceptedTypes={['video/mp4', 'video/quicktime', '.mp4', '.mov']}
                   icon={PlayCircle}
@@ -402,6 +447,7 @@ export const TeacherContentUploadPage: React.FC = () => {
                 <DropZone
                   file={pdfFile}
                   setFile={setPdfFile}
+                  inputRef={pdfInputRef}
                   accept=".pdf"
                   acceptedTypes={['application/pdf', '.pdf']}
                   icon={FileText}
