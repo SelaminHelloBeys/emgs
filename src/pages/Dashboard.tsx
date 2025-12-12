@@ -1,6 +1,5 @@
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { UserRole } from '@/types/user';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
 
 // Dashboard components for each role
 import { SuperAdminDashboard } from '@/components/dashboards/SuperAdminDashboard';
@@ -22,11 +21,11 @@ const dashboardComponents: Record<UserRole, React.FC> = {
 };
 
 export const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
 
-  if (!user) return null;
+  if (!user || !role) return null;
 
-  const DashboardComponent = dashboardComponents[user.role];
+  const DashboardComponent = dashboardComponents[role];
 
   return <DashboardComponent />;
 };
