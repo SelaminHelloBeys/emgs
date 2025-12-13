@@ -35,22 +35,25 @@ interface NavItem {
   label: string;
   href: string;
   roles: UserRole[];
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
   // Common
   { icon: Home, label: 'Ana Sayfa', href: '/dashboard', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
   
-  // Student specific
-  { icon: PlayCircle, label: 'Shorts', href: '/shorts', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin'] },
-  { icon: Video, label: 'Dersler', href: '/lessons', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin'] },
-  { icon: FileText, label: 'Dokümanlar', href: '/documents', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin'] },
-  { icon: HelpCircle, label: 'Quizler', href: '/quizzes', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin'] },
-  { icon: ClipboardList, label: 'Ödevler', href: '/homework', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin'] },
+  // Content viewing - available to all but Shorts and Analitik only for admins
+  { icon: PlayCircle, label: 'Shorts', href: '/shorts', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
+  { icon: Video, label: 'Dersler', href: '/lessons', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
+  { icon: FileText, label: 'Dokümanlar', href: '/documents', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
+  { icon: HelpCircle, label: 'Quizler', href: '/quizzes', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
+  { icon: ClipboardList, label: 'Ödevler', href: '/homework', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
+  
+  // Admin only - Content upload
+  { icon: Upload, label: 'İçerik Yükle', href: '/upload', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   
   // Teacher specific
-  { icon: Upload, label: 'İçerik Yükle', href: '/upload', roles: ['ogretmen'] },
-  { icon: BookOpen, label: 'Sınıflarım', href: '/my-classes', roles: ['ogretmen'] },
+  { icon: BookOpen, label: 'Sınıflarım', href: '/my-classes', roles: ['ogretmen', 'yonetici', 'admin'] },
   
   // Counselor specific
   { icon: Heart, label: 'Öğrenci Takibi', href: '/student-tracking', roles: ['rehber'] },
@@ -63,24 +66,30 @@ const navItems: NavItem[] = [
   // Principal specific
   { icon: GraduationCap, label: 'Okul Yönetimi', href: '/school-management', roles: ['mudur', 'mudur_yardimcisi'] },
   
-  // Common management
-  { icon: BarChart3, label: 'Analitik', href: '/analytics', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
+  // Analytics - Admin only
+  { icon: BarChart3, label: 'Analitik', href: '/analytics', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
+  
+  // Announcements
   { icon: Megaphone, label: 'Duyurular', href: '/announcements', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
   
-  // Smartboard
-  { icon: Monitor, label: 'Akıllı Tahta', href: '/smartboard', roles: ['ogretmen', 'admin', 'yonetici'] },
+  // Smartboard - Admin only
+  { icon: Monitor, label: 'Akıllı Tahta', href: '/smartboard', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   
   // Settings
   { icon: Settings, label: 'Ayarlar', href: '/settings', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
-  const { role, profile } = useAuth();
+  const { role, profile, isAdmin } = useAuth();
   const location = useLocation();
 
-  const filteredItems = navItems.filter(item => 
-    role && item.roles.includes(role)
-  );
+  const filteredItems = navItems.filter(item => {
+    // Check if user has the required role
+    if (!role || !item.roles.includes(role)) return false;
+    // If item is admin only, check if user is admin
+    if (item.adminOnly && !isAdmin) return false;
+    return true;
+  });
 
   return (
     <aside
