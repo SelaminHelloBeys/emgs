@@ -18,10 +18,12 @@ import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SmartboardPage } from "./pages/SmartboardPage";
 import { TeacherContentUploadPage } from "./pages/TeacherContentUploadPage";
+import { DenemelerPage } from "./pages/DenemelerPage";
 import NotFound from "./pages/NotFound";
 
 // Layout
 import { AppLayout } from "./components/layout/AppLayout";
+import { AICoach } from "./components/AICoach";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <AICoach />
           <Routes>
             {/* Auth */}
             <Route path="/auth" element={<AuthPage />} />
@@ -49,6 +52,7 @@ const App = () => (
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/smartboard" element={<SmartboardPage />} />
               <Route path="/upload" element={<TeacherContentUploadPage />} />
+              <Route path="/denemeler" element={<DenemelerPage />} />
               
               {/* Placeholder routes for other features */}
               <Route path="/my-classes" element={<Dashboard />} />
