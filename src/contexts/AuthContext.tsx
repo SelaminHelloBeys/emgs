@@ -32,11 +32,15 @@ interface AuthContextType {
   role: UserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signUp: (email: string, password: string, role: UserRole, name?: string) => Promise<{ error: Error | null }>;
+  needsProfileCompletion: boolean;
+  signUp: (email: string, password: string, role: UserRole, name?: string, schoolName?: string, className?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  completeProfile: (name: string, role: UserRole, schoolName: string, className: string) => Promise<{ error: Error | null }>;
   canCreateAnnouncements: boolean;
   canCreateContent: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
 
   const fetchProfileAndRole = async (userId: string) => {
     // Fetch profile
@@ -69,6 +74,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (roleData) {
       setRole(roleData.role as UserRole);
+      setNeedsProfileCompletion(false);
+    } else {
+      // No role means user needs to complete profile (OAuth flow)
+      setNeedsProfileCompletion(true);
     }
   };
 
@@ -87,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setProfile(null);
           setRole(null);
+          setNeedsProfileCompletion(false);
         }
       }
     );
@@ -108,7 +118,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, selectedRole: UserRole, name?: string) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    selectedRole: UserRole, 
+    name?: string,
+    schoolName?: string,
+    className?: string
+  ) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -136,13 +153,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error inserting role:', roleError);
       }
       
-      // Update profile with name
-      if (name) {
-        await supabase
-          .from('profiles')
-          .update({ name })
-          .eq('user_id', data.user.id);
-      }
+      // Update profile with name, school, and class
+      await supabase
+        .from('profiles')
+        .update({ 
+          name: name || email.split('@')[0],
+          school_name: schoolName,
+          class: className
+        })
+        .eq('user_id', data.user.id);
     }
 
     return { error: null };
@@ -157,17 +176,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    const redirectUrl = `${window.location.origin}/auth`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl
+      }
+    });
+
+    return { error: error || null };
+  };
+
+  const completeProfile = async (
+    name: string, 
+    selectedRole: UserRole, 
+    schoolName: string, 
+    className: string
+  ) => {
+    if (!user) {
+      return { error: new Error('No user logged in') };
+    }
+
+    // Insert role
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .insert({ user_id: user.id, role: selectedRole });
+    
+    if (roleError) {
+      console.error('Error inserting role:', roleError);
+      return { error: roleError };
+    }
+
+    // Update profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ 
+        name,
+        school_name: schoolName,
+        class: className
+      })
+      .eq('user_id', user.id);
+
+    if (profileError) {
+      console.error('Error updating profile:', profileError);
+      return { error: profileError };
+    }
+
+    // Refresh profile and role
+    await fetchProfileAndRole(user.id);
+
+    return { error: null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
     setRole(null);
+    setNeedsProfileCompletion(false);
   };
 
-  const canCreateRoles: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'ogretmen'];
-  const canCreateAnnouncements = role ? canCreateRoles.includes(role) : false;
-  const canCreateContent = role ? canCreateRoles.includes(role) : false;
+  // Admin roles that can create content
+  const adminRoles: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'];
+  const canCreateRoles: UserRole[] = [...adminRoles, 'ogretmen'];
+  const canCreateAnnouncements = role ? adminRoles.includes(role) : false;
+  const canCreateContent = role ? adminRoles.includes(role) : false;
+  const isAdmin = role ? adminRoles.includes(role) : false;
 
   return (
     <AuthContext.Provider value={{
@@ -177,11 +254,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role,
       isAuthenticated: !!user,
       isLoading,
+      needsProfileCompletion,
       signUp,
       signIn,
+      signInWithGoogle,
       signOut,
+      completeProfile,
       canCreateAnnouncements,
       canCreateContent,
+      isAdmin,
     }}>
       {children}
     </AuthContext.Provider>
