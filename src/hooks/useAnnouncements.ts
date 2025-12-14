@@ -27,26 +27,22 @@ export const useAnnouncements = () => {
 
     const { data, error } = await supabase
       .from('announcements')
-      .select(`
-        *,
-        profiles!announcements_created_by_fkey(name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching announcements:', error);
       toast.error('Duyurular yüklenirken hata oluştu');
     } else {
-      const formattedData = (data || []).map(item => ({
+      setAnnouncements((data || []).map(item => ({
         id: item.id,
         title: item.title,
         content: item.content,
         type: item.type as 'info' | 'warning' | 'success',
         created_by: item.created_by,
         created_at: item.created_at,
-        creator_name: (item.profiles as any)?.name || 'Bilinmeyen'
-      }));
-      setAnnouncements(formattedData);
+        creator_name: 'Yönetici'
+      })));
     }
     setIsLoading(false);
   };

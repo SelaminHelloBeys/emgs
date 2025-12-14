@@ -243,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const adminRoles: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'];
   const canCreateRoles: UserRole[] = [...adminRoles, 'ogretmen'];
   const canCreateAnnouncements = role ? adminRoles.includes(role) : false;
-  const canCreateContent = role ? adminRoles.includes(role) : false;
+  const canCreateContent = role ? canCreateRoles.includes(role) : false;
   const isAdmin = role ? adminRoles.includes(role) : false;
 
   return (
