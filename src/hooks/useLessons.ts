@@ -31,10 +31,7 @@ export const useLessons = (contentType?: 'video' | 'short' | 'pdf') => {
 
     let query = supabase
       .from('lessons')
-      .select(`
-        *,
-        profiles!lessons_created_by_fkey(name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (contentType) {
@@ -47,7 +44,23 @@ export const useLessons = (contentType?: 'video' | 'short' | 'pdf') => {
       console.error('Error fetching lessons:', error);
       toast.error('İçerikler yüklenirken hata oluştu');
     } else {
-      const formattedData = (data || []).map(item => ({
+      const createdByIds = Array.from(
+        new Set((data || []).map((item) => item.created_by).filter(Boolean))
+      );
+
+      const { data: profilesData, error: profilesError } = createdByIds.length
+        ? await supabase.from('profiles').select('user_id, name').in('user_id', createdByIds)
+        : { data: [], error: null };
+
+      if (profilesError) {
+        console.warn('Error fetching lesson creators:', profilesError);
+      }
+
+      const creatorNameByUserId = new Map(
+        (profilesData || []).map((p) => [p.user_id, p.name] as const)
+      );
+
+      const formattedData = (data || []).map((item) => ({
         id: item.id,
         title: item.title,
         description: item.description,
@@ -58,8 +71,9 @@ export const useLessons = (contentType?: 'video' | 'short' | 'pdf') => {
         content_type: item.content_type as 'video' | 'short' | 'pdf',
         created_by: item.created_by,
         created_at: item.created_at,
-        creator_name: (item.profiles as any)?.name || 'Bilinmeyen'
+        creator_name: creatorNameByUserId.get(item.created_by) || 'Bilinmeyen',
       }));
+
       setLessons(formattedData);
     }
     setIsLoading(false);
