@@ -266,6 +266,7 @@ export type Database = {
           subject: string
           thumbnail_url: string | null
           title: string
+          topic: string | null
         }
         Insert: {
           content_type?: string
@@ -278,6 +279,7 @@ export type Database = {
           subject: string
           thumbnail_url?: string | null
           title: string
+          topic?: string | null
         }
         Update: {
           content_type?: string
@@ -290,6 +292,7 @@ export type Database = {
           subject?: string
           thumbnail_url?: string | null
           title?: string
+          topic?: string | null
         }
         Relationships: []
       }
