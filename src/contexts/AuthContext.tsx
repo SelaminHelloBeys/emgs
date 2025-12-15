@@ -134,7 +134,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          name: name || email.split('@')[0]
+          name: name || email.split('@')[0],
+          requested_role: selectedRole // Store requested role in metadata for admin approval
         }
       }
     });
@@ -143,18 +144,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error };
     }
 
-    // Insert role for the new user
+    // Profile is auto-created by trigger, just update with additional info
     if (data.user) {
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: data.user.id, role: selectedRole });
-      
-      if (roleError) {
-        console.error('Error inserting role:', roleError);
-      }
+      // Wait a moment for trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Update profile with name, school, and class
-      await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
           name: name || email.split('@')[0],
@@ -162,6 +158,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           class: className
         })
         .eq('user_id', data.user.id);
+      
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+      }
     }
 
     return { error: null };
@@ -199,17 +199,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: new Error('No user logged in') };
     }
 
-    // Insert role
-    const { error: roleError } = await supabase
-      .from('user_roles')
-      .insert({ user_id: user.id, role: selectedRole });
-    
-    if (roleError) {
-      console.error('Error inserting role:', roleError);
-      return { error: roleError };
-    }
-
-    // Update profile
+    // Update profile (role is already set by trigger as 'ogrenci')
+    // If user requested teacher role, it needs admin approval
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ 
@@ -222,6 +213,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (profileError) {
       console.error('Error updating profile:', profileError);
       return { error: profileError };
+    }
+
+    // Store requested role in user metadata for admin to approve later
+    if (selectedRole !== 'ogrenci') {
+      await supabase.auth.updateUser({
+        data: { requested_role: selectedRole }
+      });
     }
 
     // Refresh profile and role

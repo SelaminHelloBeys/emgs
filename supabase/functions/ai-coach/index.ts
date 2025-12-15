@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,6 +12,36 @@ serve(async (req) => {
   }
 
   try {
+    // Validate JWT authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error("No authorization header");
+      return new Response(JSON.stringify({ error: "Yetkisiz erişim" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create Supabase client and verify user
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(JSON.stringify({ error: "Yetkisiz erişim. Lütfen giriş yapın." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("Authenticated user:", user.id);
+
     const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
@@ -32,7 +63,7 @@ serve(async (req) => {
             content: `Sen bir eğitim koçusun. Öğrencilere ders çalışma, sınav hazırlığı, motivasyon ve zaman yönetimi konularında yardımcı oluyorsun. 
 
 ÖNEMLİ BİLGİ:
-- Platform adı: EduPlatform
+- Platform adı: EMG (Education Material Gateway)
 - Platformun resmi açılış tarihi: 1 Ocak 2026
 - Şu an geliştirme aşamasındayız
 - Kullanıcı açılış tarihini sorarsa "1 Ocak 2026" de

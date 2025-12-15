@@ -453,7 +453,53 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      exam_questions_secure: {
+        Row: {
+          correct_option: string | null
+          created_at: string | null
+          exam_id: string | null
+          id: string | null
+          option_a: string | null
+          option_b: string | null
+          option_c: string | null
+          option_d: string | null
+          question_order: number | null
+          question_text: string | null
+        }
+        Insert: {
+          correct_option?: never
+          created_at?: string | null
+          exam_id?: string | null
+          id?: string | null
+          option_a?: string | null
+          option_b?: string | null
+          option_c?: string | null
+          option_d?: string | null
+          question_order?: number | null
+          question_text?: string | null
+        }
+        Update: {
+          correct_option?: never
+          created_at?: string | null
+          exam_id?: string | null
+          id?: string | null
+          option_a?: string | null
+          option_b?: string | null
+          option_c?: string | null
+          option_d?: string | null
+          question_order?: number | null
+          question_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_create_announcements: { Args: { _user_id: string }; Returns: boolean }
