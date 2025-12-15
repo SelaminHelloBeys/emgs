@@ -80,22 +80,17 @@ export const AppLayout: React.FC = () => {
     return null;
   }
 
-  // Show maintenance mode screen (even admins see it but can bypass)
-  if (platformModes.maintenance_mode && !adminBypassed) {
-    return (
-      <MaintenanceModeScreen
-        onAdminBypass={isAdmin ? () => setAdminBypassed(true) : undefined}
-      />
-    );
-  }
+  // Admins and yonetici are never affected by any platform modes
+  if (!isAdmin) {
+    // Show maintenance mode screen for non-admins
+    if (platformModes.maintenance_mode) {
+      return <MaintenanceModeScreen />;
+    }
 
-  // Show development mode screen if enabled and user hasn't bypassed (or isn't admin)
-  if (platformModes.development_mode && !adminBypassed) {
-    return (
-      <DevelopmentModeScreen 
-        onAdminBypass={isAdmin ? () => setAdminBypassed(true) : undefined} 
-      />
-    );
+    // Show development mode screen for non-admins
+    if (platformModes.development_mode) {
+      return <DevelopmentModeScreen />;
+    }
   }
 
   return (
