@@ -3,13 +3,20 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
+import { DevelopmentModeScreen } from '@/components/DevelopmentModeScreen';
 import { cn } from '@/lib/utils';
 
+// Development mode flag - only admin can bypass
+const DEVELOPMENT_MODE = true;
+
 export const AppLayout: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const [adminBypassed, setAdminBypassed] = React.useState(false);
+
+  const isAdmin = role === 'yonetici' || role === 'admin';
 
   React.useEffect(() => {
     if (!isAuthenticated) {
@@ -19,6 +26,15 @@ export const AppLayout: React.FC = () => {
 
   if (!isAuthenticated || !user) {
     return null;
+  }
+
+  // Show development mode screen if enabled and user hasn't bypassed (or isn't admin)
+  if (DEVELOPMENT_MODE && !adminBypassed) {
+    return (
+      <DevelopmentModeScreen 
+        onAdminBypass={isAdmin ? () => setAdminBypassed(true) : undefined} 
+      />
+    );
   }
 
   return (
