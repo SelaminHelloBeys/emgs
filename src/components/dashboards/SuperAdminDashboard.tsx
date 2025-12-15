@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { PlatformModesPanel } from '@/components/admin/PlatformModesPanel';
 import {
   Globe,
   Users,
@@ -168,6 +169,9 @@ export const SuperAdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Platform Modes */}
+      <PlatformModesPanel />
     </div>
   );
 };
