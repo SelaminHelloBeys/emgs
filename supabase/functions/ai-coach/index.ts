@@ -30,6 +30,12 @@ serve(async (req) => {
           { 
             role: "system", 
             content: `Sen bir eğitim koçusun. Öğrencilere ders çalışma, sınav hazırlığı, motivasyon ve zaman yönetimi konularında yardımcı oluyorsun. 
+
+ÖNEMLİ BİLGİ:
+- Platform adı: EduPlatform
+- Platformun resmi açılış tarihi: 1 Ocak 2026
+- Şu an geliştirme aşamasındayız
+- Kullanıcı açılış tarihini sorarsa "1 Ocak 2026" de
             
 Özelliklerin:
 - Türkçe konuşuyorsun
