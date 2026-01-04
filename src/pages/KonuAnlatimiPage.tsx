@@ -1,20 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { useLessons, Lesson } from '@/hooks/useLessons';
+import { useVideoProgress } from '@/hooks/useVideoProgress';
 import {
   Play,
-  Pause,
   ChevronLeft,
-  Volume2,
-  VolumeX,
-  Maximize,
   Clock,
   User,
   ThumbsUp,
   BookOpen,
   Loader2,
   ArrowLeft,
+  CheckCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,25 +37,47 @@ type ViewState = 'subjects' | 'units' | 'videos';
 
 export const KonuAnlatimiPage: React.FC = () => {
   const { lessons, isLoading } = useLessons('video');
+  const { watchedVideos, updateProgress } = useVideoProgress();
   const [viewState, setViewState] = useState<ViewState>('subjects');
   const [selectedSubject, setSelectedSubject] = useState<typeof SUBJECTS[0] | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<typeof UNITS[0] | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Create a map for quick progress lookup
+  const progressMap = useMemo(() => {
+    return new Map(watchedVideos.map(v => [v.lesson_id, v]));
+  }, [watchedVideos]);
 
   // Seçili ders ve üniteye göre videoları filtrele
   const filteredLessons = useMemo(() => {
     if (!selectedSubject || !selectedUnit) return [];
     
-    // topic alanında ünite bilgisi varsa ona göre filtrele
-    // Yoksa tüm videoları göster (demo amaçlı)
     return lessons.filter(lesson => {
       const subjectMatch = lesson.subject.toLowerCase().includes(selectedSubject.name.toLowerCase()) ||
                            selectedSubject.name.toLowerCase().includes(lesson.subject.toLowerCase());
       return subjectMatch;
     });
   }, [lessons, selectedSubject, selectedUnit]);
+
+  // Handle video time update
+  const handleTimeUpdate = () => {
+    if (!videoRef.current || !selectedLesson) return;
+    
+    const video = videoRef.current;
+    const progress = Math.round((video.currentTime / video.duration) * 100);
+    
+    // Update every 10% or when completed
+    if (progress % 10 === 0 || progress >= 90) {
+      updateProgress(selectedLesson.id, progress);
+    }
+  };
+
+  // Handle video ended
+  const handleVideoEnded = () => {
+    if (!selectedLesson) return;
+    updateProgress(selectedLesson.id, 100);
+  };
 
   const handleSubjectSelect = (subject: typeof SUBJECTS[0]) => {
     setSelectedSubject(subject);
@@ -81,6 +102,13 @@ export const KonuAnlatimiPage: React.FC = () => {
       setSelectedSubject(null);
     }
   };
+
+  // Update selected lesson when filtered lessons change
+  useEffect(() => {
+    if (viewState === 'videos' && filteredLessons.length > 0 && !selectedLesson) {
+      setSelectedLesson(filteredLessons[0]);
+    }
+  }, [filteredLessons, viewState, selectedLesson]);
 
   // Subjects View
   if (viewState === 'subjects') {
@@ -197,10 +225,12 @@ export const KonuAnlatimiPage: React.FC = () => {
                     <div className="relative aspect-video bg-foreground">
                       {selectedLesson.file_url ? (
                         <video
+                          ref={videoRef}
                           src={selectedLesson.file_url}
                           className="absolute inset-0 w-full h-full object-cover"
                           controls
-                          muted={isMuted}
+                          onTimeUpdate={handleTimeUpdate}
+                          onEnded={handleVideoEnded}
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-muted">
@@ -213,9 +243,17 @@ export const KonuAnlatimiPage: React.FC = () => {
                   <Card className="p-6">
                     <div className="flex items-start gap-4">
                       <div className="flex-1">
-                        <span className={cn("text-xs font-medium px-2 py-1 rounded-full", selectedSubject.color)}>
-                          {selectedSubject.name} - {selectedUnit.name}
-                        </span>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={cn("text-xs font-medium px-2 py-1 rounded-full", selectedSubject.color)}>
+                            {selectedSubject.name} - {selectedUnit.name}
+                          </span>
+                          {progressMap.get(selectedLesson.id)?.completed && (
+                            <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-500/10 text-green-600 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Tamamlandı
+                            </span>
+                          )}
+                        </div>
                         <h2 className="text-xl font-semibold mt-2 mb-1">{selectedLesson.title}</h2>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                           <span className="flex items-center gap-1">
@@ -225,6 +263,18 @@ export const KonuAnlatimiPage: React.FC = () => {
                             <Clock className="w-4 h-4" /> {selectedLesson.duration || 'N/A'}
                           </span>
                         </div>
+                        
+                        {/* Progress bar */}
+                        {progressMap.has(selectedLesson.id) && (
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span className="text-muted-foreground">İzleme İlerlemesi</span>
+                              <span className="font-medium">{progressMap.get(selectedLesson.id)?.progress || 0}%</span>
+                            </div>
+                            <Progress value={progressMap.get(selectedLesson.id)?.progress || 0} className="h-2" />
+                          </div>
+                        )}
+                        
                         {selectedLesson.description && (
                           <p className="text-muted-foreground">{selectedLesson.description}</p>
                         )}
@@ -247,26 +297,47 @@ export const KonuAnlatimiPage: React.FC = () => {
             <div className="space-y-4">
               <h3 className="font-semibold">Bu Ünitedeki Videolar</h3>
               <div className="space-y-2">
-                {filteredLessons.map((lesson) => (
-                  <Card
-                    key={lesson.id}
-                    className={cn(
-                      "p-3 cursor-pointer transition-all",
-                      selectedLesson?.id === lesson.id && "ring-2 ring-primary"
-                    )}
-                    onClick={() => setSelectedLesson(lesson)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Play className="w-4 h-4 text-primary" />
+                {filteredLessons.map((lesson) => {
+                  const progress = progressMap.get(lesson.id);
+                  const isCompleted = progress?.completed;
+                  
+                  return (
+                    <Card
+                      key={lesson.id}
+                      className={cn(
+                        "p-3 cursor-pointer transition-all",
+                        selectedLesson?.id === lesson.id && "ring-2 ring-primary"
+                      )}
+                      onClick={() => setSelectedLesson(lesson)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center relative",
+                          isCompleted ? "bg-green-500/10" : "bg-primary/10"
+                        )}>
+                          {isCompleted ? (
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          ) : (
+                            <Play className="w-4 h-4 text-primary" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{lesson.title}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground">{lesson.duration || lesson.subject}</p>
+                            {progress && !isCompleted && (
+                              <span className="text-xs text-primary">{progress.progress}%</span>
+                            )}
+                          </div>
+                          {/* Mini progress bar */}
+                          {progress && !isCompleted && (
+                            <Progress value={progress.progress} className="h-1 mt-1" />
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{lesson.title}</p>
-                        <p className="text-xs text-muted-foreground">{lesson.duration || lesson.subject}</p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           </div>

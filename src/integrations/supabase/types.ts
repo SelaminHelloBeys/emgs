@@ -41,6 +41,39 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description: string
+          icon?: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
       exam_questions: {
         Row: {
           correct_option: string
@@ -365,6 +398,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -453,57 +515,31 @@ export type Database = {
       }
     }
     Views: {
-      exam_questions_secure: {
-        Row: {
-          correct_option: string | null
-          created_at: string | null
-          exam_id: string | null
-          id: string | null
-          option_a: string | null
-          option_b: string | null
-          option_c: string | null
-          option_d: string | null
-          question_order: number | null
-          question_text: string | null
-        }
-        Insert: {
-          correct_option?: never
-          created_at?: string | null
-          exam_id?: string | null
-          id?: string | null
-          option_a?: string | null
-          option_b?: string | null
-          option_c?: string | null
-          option_d?: string | null
-          question_order?: number | null
-          question_text?: string | null
-        }
-        Update: {
-          correct_option?: never
-          created_at?: string | null
-          exam_id?: string | null
-          id?: string | null
-          option_a?: string | null
-          option_b?: string | null
-          option_c?: string | null
-          option_d?: string | null
-          question_order?: number | null
-          question_text?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "exam_questions_exam_id_fkey"
-            columns: ["exam_id"]
-            isOneToOne: false
-            referencedRelation: "exams"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       can_create_announcements: { Args: { _user_id: string }; Returns: boolean }
       can_create_content: { Args: { _user_id: string }; Returns: boolean }
+      get_exam_answers_after_completion: {
+        Args: { p_exam_id: string }
+        Returns: {
+          correct_option: string
+          question_id: string
+        }[]
+      }
+      get_exam_questions_for_student: {
+        Args: { p_exam_id: string }
+        Returns: {
+          exam_id: string
+          id: string
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          question_order: number
+          question_text: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
