@@ -29,18 +29,14 @@ import { toast } from 'sonner';
 
 const subjects = [
   'Matematik',
-  'Fizik',
-  'Kimya',
-  'Biyoloji',
   'Türkçe',
-  'Edebiyat',
-  'Tarih',
-  'Coğrafya',
+  'Fen Bilimleri',
+  'Sosyal Bilgiler',
   'İngilizce',
-  'Almanca',
-  'Felsefe',
-  'Din Kültürü',
+  'Din ve Ahlak Bilgisi',
 ];
+
+const units = Array.from({ length: 10 }, (_, i) => `${i + 1}. Ünite`);
 
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 Bytes';
@@ -61,6 +57,7 @@ export const TeacherContentUploadPage: React.FC = () => {
   const [videoTitle, setVideoTitle] = useState('');
   const [videoDescription, setVideoDescription] = useState('');
   const [videoSubject, setVideoSubject] = useState('');
+  const [videoUnit, setVideoUnit] = useState('');
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUploading, setVideoUploading] = useState(false);
   const [videoSuccess, setVideoSuccess] = useState(false);
@@ -115,10 +112,10 @@ export const TeacherContentUploadPage: React.FC = () => {
   };
 
   const handleVideoUpload = async () => {
-    if (!videoTitle || !videoSubject || !videoFile) return;
+    if (!videoTitle || !videoSubject || !videoUnit || !videoFile) return;
     
     setVideoUploading(true);
-    const { error } = await createLesson(videoTitle, videoSubject, 'video', videoFile, videoDescription);
+    const { error } = await createLesson(videoTitle, videoSubject, 'video', videoFile, videoDescription, videoUnit);
     setVideoUploading(false);
 
     if (!error) {
@@ -126,6 +123,7 @@ export const TeacherContentUploadPage: React.FC = () => {
       setVideoTitle('');
       setVideoDescription('');
       setVideoSubject('');
+      setVideoUnit('');
       setVideoFile(null);
       setTimeout(() => setVideoSuccess(false), 3000);
     }
@@ -285,20 +283,38 @@ export const TeacherContentUploadPage: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Ders</label>
-                <Select value={videoSubject} onValueChange={setVideoSubject}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Ders seçin" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem key={subject} value={subject}>
-                        {subject}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Ders</label>
+                  <Select value={videoSubject} onValueChange={setVideoSubject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Ders seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map((subject) => (
+                        <SelectItem key={subject} value={subject}>
+                          {subject}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Ünite</label>
+                  <Select value={videoUnit} onValueChange={setVideoUnit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Ünite seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {units.map((unit) => (
+                        <SelectItem key={unit} value={unit}>
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
@@ -325,7 +341,7 @@ export const TeacherContentUploadPage: React.FC = () => {
             <Button
               variant="apple"
               className="w-full gap-2"
-              disabled={!videoTitle || !videoSubject || !videoFile || videoUploading}
+              disabled={!videoTitle || !videoSubject || !videoUnit || !videoFile || videoUploading}
               onClick={handleVideoUpload}
             >
               {videoUploading ? (

@@ -9,7 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthPage } from "./pages/AuthPage";
 import { Dashboard } from "./pages/Dashboard";
 import { ShortsPage } from "./pages/ShortsPage";
-import { LessonsPage } from "./pages/LessonsPage";
+import { KonuAnlatimiPage } from "./pages/KonuAnlatimiPage";
 import { QuizzesPage } from "./pages/QuizzesPage";
 import { DocumentsPage } from "./pages/DocumentsPage";
 import { HomeworkPage } from "./pages/HomeworkPage";
@@ -19,6 +19,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { SmartboardPage } from "./pages/SmartboardPage";
 import { TeacherContentUploadPage } from "./pages/TeacherContentUploadPage";
 import { DenemelerPage } from "./pages/DenemelerPage";
+import { ExamTakingPage } from "./pages/ExamTakingPage";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -43,7 +44,7 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/shorts" element={<ShortsPage />} />
-              <Route path="/lessons" element={<LessonsPage />} />
+              <Route path="/konu-anlatimi" element={<KonuAnlatimiPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/quizzes" element={<QuizzesPage />} />
               <Route path="/homework" element={<HomeworkPage />} />
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/smartboard" element={<SmartboardPage />} />
               <Route path="/upload" element={<TeacherContentUploadPage />} />
               <Route path="/denemeler" element={<DenemelerPage />} />
+              <Route path="/denemeler/:examId" element={<ExamTakingPage />} />
               
               {/* Placeholder routes for other features */}
               <Route path="/my-classes" element={<Dashboard />} />

@@ -8,6 +8,7 @@ export interface Lesson {
   title: string;
   description?: string;
   subject: string;
+  topic?: string;
   file_url?: string;
   thumbnail_url?: string;
   duration?: string;
@@ -65,6 +66,7 @@ export const useLessons = (contentType?: 'video' | 'short' | 'pdf') => {
         title: item.title,
         description: item.description,
         subject: item.subject,
+        topic: item.topic,
         file_url: item.file_url,
         thumbnail_url: item.thumbnail_url,
         duration: item.duration,
@@ -106,7 +108,8 @@ export const useLessons = (contentType?: 'video' | 'short' | 'pdf') => {
     subject: string,
     contentType: 'video' | 'short' | 'pdf',
     file: File,
-    description?: string
+    description?: string,
+    topic?: string
   ) => {
     if (!user) return { error: new Error('Not authenticated') };
 
@@ -123,6 +126,7 @@ export const useLessons = (contentType?: 'video' | 'short' | 'pdf') => {
         title,
         description,
         subject,
+        topic,
         file_url: url,
         content_type: contentType,
         created_by: user.id

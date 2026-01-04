@@ -24,6 +24,7 @@ export const SmartboardPage: React.FC = () => {
   const [isOffline, setIsOffline] = useState(false);
   const [selectedContent, setSelectedContent] = useState<Lesson | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -34,11 +35,36 @@ export const SmartboardPage: React.FC = () => {
     }
   };
 
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      try {
+        await containerRef.current?.requestFullscreen();
+        setIsFullscreen(true);
+      } catch (err) {
+        console.error('Fullscreen error:', err);
+      }
+    } else {
+      await document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   return (
-    <div className={cn(
-      "space-y-8",
-      isFullscreen && "fixed inset-0 z-50 bg-background p-8"
-    )}>
+    <div 
+      ref={containerRef}
+      className={cn(
+        "space-y-8",
+        isFullscreen && "fixed inset-0 z-50 bg-background p-8 overflow-auto"
+      )}
+    >
       {/* Header */}
       <div className="flex items-start justify-between animate-slide-up">
         <div>
@@ -60,10 +86,10 @@ export const SmartboardPage: React.FC = () => {
           <Button 
             variant="apple" 
             className="gap-2"
-            onClick={() => setIsFullscreen(!isFullscreen)}
+            onClick={toggleFullscreen}
           >
             <Maximize className="w-4 h-4" />
-            Tam Ekran
+            {isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran'}
           </Button>
         </div>
       </div>
