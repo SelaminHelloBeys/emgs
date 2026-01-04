@@ -3,9 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useExams, ExamQuestion } from '@/hooks/useExams';
+import { useExams } from '@/hooks/useExams';
 import { Clock, ChevronLeft, ChevronRight, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+interface ExamQuestion {
+  id: string;
+  exam_id: string;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  question_order: number;
+}
 
 interface ExamWithQuestions {
   id: string;
@@ -73,21 +84,14 @@ export const ExamTakingPage: React.FC = () => {
     
     setIsSubmitting(true);
     
-    // Calculate score
-    let correctCount = 0;
-    exam.questions.forEach(q => {
-      if (answers[q.id] === q.correct_option) {
-        correctCount++;
-      }
-    });
+    // Submit answers first - backend will calculate the score
+    await submitExamResult(exam.id, answers, 0, exam.questions.length);
     
-    setScore(correctCount);
-    
-    await submitExamResult(exam.id, answers, correctCount, exam.questions.length);
+    // Navigate to results page to see the score
+    navigate(`/denemeler/${exam.id}/sonuc`);
     
     setIsSubmitting(false);
-    setShowResults(true);
-  }, [exam, answers, isSubmitting, submitExamResult]);
+  }, [exam, answers, isSubmitting, submitExamResult, navigate]);
 
   if (isLoading) {
     return (
