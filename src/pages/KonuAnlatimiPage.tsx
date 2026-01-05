@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useLessons, Lesson } from '@/hooks/useLessons';
 import { useVideoProgress } from '@/hooks/useVideoProgress';
+import { useAuth } from '@/contexts/AuthContext';
+import { EnglishVocabularySection } from '@/components/EnglishVocabularySection';
 import {
   Play,
-  ChevronLeft,
   Clock,
   User,
   ThumbsUp,
@@ -14,8 +15,22 @@ import {
   Loader2,
   ArrowLeft,
   CheckCircle,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 // Sabit ders ve ünite listesi
 const SUBJECTS = [
@@ -23,7 +38,7 @@ const SUBJECTS = [
   { id: 'turkce', name: 'Türkçe', icon: '📝', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
   { id: 'fen-bilimleri', name: 'Fen Bilimleri', icon: '🔬', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
   { id: 'sosyal-bilgiler', name: 'Sosyal Bilgiler', icon: '🌍', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
-  { id: 'ingilizce', name: 'İngilizce', icon: '🇬🇧', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+  { id: 'ingilizce', name: 'İngilizce', icon: '🇬🇧', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', hasVocabulary: true },
   { id: 'din-ahlak', name: 'Din ve Ahlak Bilgisi', icon: '📖', color: 'bg-teal-500/10 text-teal-500 border-teal-500/20' },
 ];
 
@@ -33,15 +48,17 @@ const UNITS = Array.from({ length: 10 }, (_, i) => ({
   number: i + 1,
 }));
 
-type ViewState = 'subjects' | 'units' | 'videos';
+type ViewState = 'subjects' | 'units' | 'videos' | 'vocabulary';
 
 export const KonuAnlatimiPage: React.FC = () => {
-  const { lessons, isLoading } = useLessons('video');
+  const { lessons, isLoading, refetch } = useLessons('video');
   const { watchedVideos, updateProgress } = useVideoProgress();
+  const { isAdmin, canCreateContent } = useAuth();
   const [viewState, setViewState] = useState<ViewState>('subjects');
   const [selectedSubject, setSelectedSubject] = useState<typeof SUBJECTS[0] | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<typeof UNITS[0] | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Create a map for quick progress lookup
@@ -49,14 +66,22 @@ export const KonuAnlatimiPage: React.FC = () => {
     return new Map(watchedVideos.map(v => [v.lesson_id, v]));
   }, [watchedVideos]);
 
-  // Seçili ders ve üniteye göre videoları filtrele
+  // Filter lessons by BOTH subject AND unit (topic)
   const filteredLessons = useMemo(() => {
     if (!selectedSubject || !selectedUnit) return [];
     
     return lessons.filter(lesson => {
+      // Match subject
       const subjectMatch = lesson.subject.toLowerCase().includes(selectedSubject.name.toLowerCase()) ||
                            selectedSubject.name.toLowerCase().includes(lesson.subject.toLowerCase());
-      return subjectMatch;
+      
+      // Match unit/topic - CRITICAL FIX
+      const unitMatch = lesson.topic === selectedUnit.id || 
+                        lesson.topic === selectedUnit.name ||
+                        lesson.topic === `${selectedUnit.number}. Ünite` ||
+                        lesson.topic === `unite-${selectedUnit.number}`;
+      
+      return subjectMatch && unitMatch;
     });
   }, [lessons, selectedSubject, selectedUnit]);
 
@@ -81,15 +106,17 @@ export const KonuAnlatimiPage: React.FC = () => {
 
   const handleSubjectSelect = (subject: typeof SUBJECTS[0]) => {
     setSelectedSubject(subject);
-    setViewState('units');
+    // Check if this is English with vocabulary option
+    if (subject.hasVocabulary) {
+      setViewState('units'); // Show units first, vocabulary is accessible from there
+    } else {
+      setViewState('units');
+    }
   };
 
   const handleUnitSelect = (unit: typeof UNITS[0]) => {
     setSelectedUnit(unit);
     setViewState('videos');
-    if (filteredLessons.length > 0) {
-      setSelectedLesson(filteredLessons[0]);
-    }
   };
 
   const handleBack = () => {
@@ -100,7 +127,33 @@ export const KonuAnlatimiPage: React.FC = () => {
     } else if (viewState === 'units') {
       setViewState('subjects');
       setSelectedSubject(null);
+    } else if (viewState === 'vocabulary') {
+      setViewState('units');
     }
+  };
+
+  const handleDeleteVideo = async (lesson: Lesson) => {
+    setDeletingId(lesson.id);
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .eq('id', lesson.id);
+
+      if (error) throw error;
+
+      toast.success('Video silindi');
+      refetch();
+      
+      // If this was the selected lesson, clear it
+      if (selectedLesson?.id === lesson.id) {
+        setSelectedLesson(filteredLessons.find(l => l.id !== lesson.id) || null);
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast.error('Video silinirken hata oluştu');
+    }
+    setDeletingId(null);
   };
 
   // Update selected lesson when filtered lessons change
@@ -109,6 +162,11 @@ export const KonuAnlatimiPage: React.FC = () => {
       setSelectedLesson(filteredLessons[0]);
     }
   }, [filteredLessons, viewState, selectedLesson]);
+
+  // Vocabulary view for English
+  if (viewState === 'vocabulary' && selectedSubject?.hasVocabulary) {
+    return <EnglishVocabularySection onBack={handleBack} />;
+  }
 
   // Subjects View
   if (viewState === 'subjects') {
@@ -159,6 +217,22 @@ export const KonuAnlatimiPage: React.FC = () => {
             <p className="text-muted-foreground">Ünite seçerek derslere göz atın</p>
           </div>
         </div>
+
+        {/* Vocabulary button for English */}
+        {selectedSubject.hasVocabulary && (
+          <Card 
+            className="p-6 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg border-2 border-purple-500/30 bg-purple-500/5"
+            onClick={() => setViewState('vocabulary')}
+          >
+            <div className="flex items-center gap-4">
+              <span className="text-4xl">📚</span>
+              <div>
+                <h3 className="font-semibold text-lg">Kelime Hazinesi</h3>
+                <p className="text-sm text-muted-foreground">A1'den C1'e tüm seviyeler</p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {UNITS.map((unit) => (
@@ -334,6 +408,44 @@ export const KonuAnlatimiPage: React.FC = () => {
                             <Progress value={progress.progress} className="h-1 mt-1" />
                           )}
                         </div>
+                        
+                        {/* Delete button for admins */}
+                        {(isAdmin || canCreateContent) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="text-destructive shrink-0"
+                                onClick={(e) => e.stopPropagation()}
+                                disabled={deletingId === lesson.id}
+                              >
+                                {deletingId === lesson.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Videoyu Sil</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  "{lesson.title}" videosunu silmek istediğinize emin misiniz?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>İptal</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteVideo(lesson)}
+                                  className="bg-destructive text-destructive-foreground"
+                                >
+                                  Sil
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </Card>
                   );

@@ -11,9 +11,20 @@ import {
   Loader2, 
   Trophy,
   Target,
-  Clock
+  TrendingUp,
+  TrendingDown,
+  Minus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Topic analysis helper
+interface TopicAnalysis {
+  topic: string;
+  total: number;
+  correct: number;
+  percentage: number;
+  status: 'strong' | 'weak' | 'average';
+}
 
 export const ExamResultsPage: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
@@ -30,6 +41,46 @@ export const ExamResultsPage: React.FC = () => {
     };
     loadResult();
   }, [examId]);
+
+  // Calculate topic-based analysis
+  const topicAnalysis: TopicAnalysis[] = React.useMemo(() => {
+    if (!result) return [];
+
+    // Group questions by topic (using question order ranges as pseudo-topics)
+    const topics: Record<string, { total: number; correct: number }> = {};
+    
+    // Divide questions into 4 topic groups
+    const questionsPerTopic = Math.ceil(result.questions.length / 4);
+    const topicNames = ['Konu 1', 'Konu 2', 'Konu 3', 'Konu 4'];
+    
+    result.questions.forEach((q, index) => {
+      const topicIndex = Math.min(Math.floor(index / questionsPerTopic), 3);
+      const topicName = topicNames[topicIndex];
+      
+      if (!topics[topicName]) {
+        topics[topicName] = { total: 0, correct: 0 };
+      }
+      topics[topicName].total++;
+      if (q.is_correct) {
+        topics[topicName].correct++;
+      }
+    });
+
+    return Object.entries(topics).map(([topic, data]) => {
+      const percentage = Math.round((data.correct / data.total) * 100);
+      let status: 'strong' | 'weak' | 'average' = 'average';
+      if (percentage >= 70) status = 'strong';
+      else if (percentage < 50) status = 'weak';
+      
+      return {
+        topic,
+        total: data.total,
+        correct: data.correct,
+        percentage,
+        status
+      };
+    });
+  }, [result]);
 
   if (isLoading || !result) {
     return (
@@ -95,6 +146,54 @@ export const ExamResultsPage: React.FC = () => {
           <p className="text-sm text-muted-foreground">Toplam Soru</p>
         </Card>
       </div>
+
+      {/* Topic Analysis Section */}
+      <Card className="p-6">
+        <h3 className="font-semibold text-lg mb-4">Konu Bazlı Analiz</h3>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {topicAnalysis.map((topic) => (
+            <div 
+              key={topic.topic}
+              className={cn(
+                "p-4 rounded-xl border-2",
+                topic.status === 'strong' && "bg-green-500/5 border-green-500/20",
+                topic.status === 'weak' && "bg-red-500/5 border-red-500/20",
+                topic.status === 'average' && "bg-yellow-500/5 border-yellow-500/20"
+              )}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium">{topic.topic}</span>
+                {topic.status === 'strong' && <TrendingUp className="w-5 h-5 text-green-500" />}
+                {topic.status === 'weak' && <TrendingDown className="w-5 h-5 text-red-500" />}
+                {topic.status === 'average' && <Minus className="w-5 h-5 text-yellow-500" />}
+              </div>
+              <div className="text-2xl font-bold mb-1">%{topic.percentage}</div>
+              <p className="text-xs text-muted-foreground">
+                {topic.correct}/{topic.total} doğru
+              </p>
+              <Progress 
+                value={topic.percentage} 
+                className={cn(
+                  "h-2 mt-2",
+                  topic.status === 'strong' && "[&>div]:bg-green-500",
+                  topic.status === 'weak' && "[&>div]:bg-red-500",
+                  topic.status === 'average' && "[&>div]:bg-yellow-500"
+                )} 
+              />
+              <p className={cn(
+                "text-xs mt-2 font-medium",
+                topic.status === 'strong' && "text-green-600",
+                topic.status === 'weak' && "text-red-600",
+                topic.status === 'average' && "text-yellow-600"
+              )}>
+                {topic.status === 'strong' && '💪 Güçlü'}
+                {topic.status === 'weak' && '📚 Çalışmaya devam'}
+                {topic.status === 'average' && '📖 Orta seviye'}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Progress Bar */}
       <Card className="p-4">

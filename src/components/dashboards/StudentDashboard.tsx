@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useVideoProgress } from '@/hooks/useVideoProgress';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useLessons } from '@/hooks/useLessons';
+import { useBadges } from '@/hooks/useBadges';
 import { useNavigate } from 'react-router-dom';
 import {
   Video,
@@ -18,13 +19,17 @@ import {
   FileText,
   Search,
   Loader2,
+  Trophy,
+  CheckCircle,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const StudentDashboard: React.FC = () => {
   const { profile } = useAuth();
   const { watchedVideos, isLoading: progressLoading } = useVideoProgress();
   const { stats, isLoading: statsLoading } = useUserStats();
   const { lessons, isLoading: lessonsLoading } = useLessons();
+  const { userBadges, isLoading: badgesLoading } = useBadges();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -64,14 +69,20 @@ export const StudentDashboard: React.FC = () => {
       )
     : [];
 
+  // Get completed videos count
+  const completedVideos = watchedVideos.filter(v => v.completed).length;
+
+  // Get recent badges (last 3)
+  const recentBadges = userBadges.slice(0, 3);
+
   const statsData = [
-    { label: 'İzlenen Ders', value: stats?.lessons_watched || 0, icon: Video, change: 'ders' },
+    { label: 'İzlenen Ders', value: completedVideos, icon: Video, change: 'ders' },
     { label: 'Çözülen Deneme', value: stats?.exams_completed || 0, icon: Target, change: 'deneme' },
     { label: 'Teslim Edilen Ödev', value: stats?.homework_submitted || 0, icon: Flame, change: 'ödev' },
-    { label: 'Toplam Süre', value: `${Math.floor((stats?.total_watch_time || 0) / 60)}`, icon: Award, change: 'dakika' },
+    { label: 'Kazanılan Rozet', value: userBadges.length, icon: Award, change: 'rozet' },
   ];
 
-  const isLoading = progressLoading || statsLoading || lessonsLoading;
+  const isLoading = progressLoading || statsLoading || lessonsLoading || badgesLoading;
 
   return (
     <div className="space-y-8">
@@ -207,10 +218,76 @@ export const StudentDashboard: React.FC = () => {
               ))}
             </div>
           )}
+
+          {/* Recent Badges Section */}
+          {recentBadges.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Son Kazanılan Rozetler</h2>
+                <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/badges')}>
+                  Tümünü Gör
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {recentBadges.map((ub) => (
+                  <Card key={ub.id} className="p-4 text-center">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 mx-auto flex items-center justify-center text-2xl mb-2">
+                      {ub.badge?.icon || '🏆'}
+                    </div>
+                    <p className="font-medium text-sm truncate">{ub.badge?.name}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar */}
         <div className="space-y-6">
+          {/* Progress Summary */}
+          <Card variant="elevated" className="p-5">
+            <h3 className="font-semibold mb-4">İlerleme Özeti</h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">İzlenen Videolar</span>
+                  <span className="font-medium">{completedVideos}</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 rounded-full transition-all"
+                    style={{ width: `${Math.min((completedVideos / 10) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Tamamlanan Sınavlar</span>
+                  <span className="font-medium">{stats?.exams_completed || 0}</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-purple-500 rounded-full transition-all"
+                    style={{ width: `${Math.min(((stats?.exams_completed || 0) / 5) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Kazanılan Rozetler</span>
+                  <span className="font-medium">{userBadges.length}</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-yellow-500 rounded-full transition-all"
+                    style={{ width: `${Math.min((userBadges.length / 10) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Quick Actions */}
           <Card variant="elevated" className="p-5">
             <h3 className="font-semibold mb-4">Hızlı Erişim</h3>
@@ -223,12 +300,12 @@ export const StudentDashboard: React.FC = () => {
                 <BookOpen className="w-5 h-5" />
                 <span className="text-xs">Dersler</span>
               </Button>
-              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/documents')}>
-                <FileText className="w-5 h-5" />
-                <span className="text-xs">PDF'ler</span>
+              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/badges')}>
+                <Trophy className="w-5 h-5" />
+                <span className="text-xs">Rozetler</span>
               </Button>
               <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/homework')}>
-                <Video className="w-5 h-5" />
+                <FileText className="w-5 h-5" />
                 <span className="text-xs">Ödevler</span>
               </Button>
             </div>
