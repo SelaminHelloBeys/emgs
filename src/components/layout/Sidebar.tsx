@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { LegalDisclaimerMini } from '@/components/LegalDisclaimer';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -141,15 +142,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
           })}
         </nav>
 
-        {/* School info */}
-        {!collapsed && profile?.school_name && (
-          <div className="pt-4 border-t border-border/50">
+        {/* School info and Legal */}
+        <div className="pt-4 border-t border-border/50">
+          {!collapsed && profile?.school_name && (
             <div className="px-3 py-2">
               <p className="text-xs text-muted-foreground">Okul</p>
               <p className="text-sm font-medium truncate">{profile.school_name}</p>
             </div>
-          </div>
-        )}
+          )}
+          {!collapsed && <LegalDisclaimerMini />}
+        </div>
       </div>
     </aside>
   );

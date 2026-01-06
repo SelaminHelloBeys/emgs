@@ -8,6 +8,9 @@ import { useUserStats } from '@/hooks/useUserStats';
 import { useLessons } from '@/hooks/useLessons';
 import { useBadges } from '@/hooks/useBadges';
 import { useNavigate } from 'react-router-dom';
+import { StudentLeaderboard } from '@/components/StudentLeaderboard';
+import { LastMinuteMode } from '@/components/LastMinuteMode';
+import { LearningStyleQuickButton } from '@/components/LearningStyleSelector';
 import {
   Video,
   Target,
@@ -21,6 +24,7 @@ import {
   Loader2,
   Trophy,
   CheckCircle,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -86,14 +90,22 @@ export const StudentDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header with Search */}
+      {/* Welcome Header with Actions */}
       <div className="animate-slide-up">
-        <h1 className="text-3xl font-bold mb-2">
-          Merhaba, {profile?.name?.split(' ')[0] || 'Öğrenci'} 👋
-        </h1>
-        <p className="text-muted-foreground mb-4">
-          Bugün öğrenmeye hazır mısın? {profile?.class && `${profile.class} sınıfı`}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              Merhaba, {profile?.name?.split(' ')[0] || 'Öğrenci'} 👋
+            </h1>
+            <p className="text-muted-foreground">
+              Bugün öğrenmeye hazır mısın? {profile?.class && `${profile.class} sınıfı`}
+            </p>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <LearningStyleQuickButton />
+            <LastMinuteMode />
+          </div>
+        </div>
         
         {/* Search Bar */}
         <div className="relative max-w-md">
@@ -296,11 +308,11 @@ export const StudentDashboard: React.FC = () => {
                 <Target className="w-5 h-5" />
                 <span className="text-xs">Denemeler</span>
               </Button>
-              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/lessons')}>
+              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/konu-anlatimi')}>
                 <BookOpen className="w-5 h-5" />
                 <span className="text-xs">Dersler</span>
               </Button>
-              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/badges')}>
+              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/rozetler')}>
                 <Trophy className="w-5 h-5" />
                 <span className="text-xs">Rozetler</span>
               </Button>
@@ -310,6 +322,9 @@ export const StudentDashboard: React.FC = () => {
               </Button>
             </div>
           </Card>
+
+          {/* Student Leaderboard */}
+          <StudentLeaderboard />
         </div>
       </div>
     </div>
