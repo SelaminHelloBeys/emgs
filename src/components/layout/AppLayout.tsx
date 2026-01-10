@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
+import { MobileNav } from './MobileNav';
 import { DevelopmentModeScreen } from '@/components/DevelopmentModeScreen';
 import { MaintenanceModeScreen } from '@/components/MaintenanceModeScreen';
 import { cn } from '@/lib/utils';
@@ -18,7 +19,7 @@ export const AppLayout: React.FC = () => {
   const { user, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [adminBypassed, setAdminBypassed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [platformModes, setPlatformModes] = useState<PlatformModes>({
     development_mode: false,
     maintenance_mode: false,
@@ -82,12 +83,10 @@ export const AppLayout: React.FC = () => {
 
   // Admins and yonetici are never affected by any platform modes
   if (!isAdmin) {
-    // Show maintenance mode screen for non-admins
     if (platformModes.maintenance_mode) {
       return <MaintenanceModeScreen />;
     }
 
-    // Show development mode screen for non-admins
     if (platformModes.development_mode) {
       return <DevelopmentModeScreen />;
     }
@@ -95,12 +94,13 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <TopNav onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      <TopNav onMenuClick={() => setMobileNavOpen(true)} />
+      <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
       <div className="flex">
         <Sidebar collapsed={sidebarCollapsed} onCollapse={setSidebarCollapsed} />
         <main 
           className={cn(
-            "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 p-6 lg:p-8",
+            "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 p-4 sm:p-6 lg:p-8",
             sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
           )}
         >

@@ -12,7 +12,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { ShortsPage } from "./pages/ShortsPage";
 import { KonuAnlatimiPage } from "./pages/KonuAnlatimiPage";
 import { QuizzesPage } from "./pages/QuizzesPage";
-import { DocumentsPage } from "./pages/DocumentsPage";
+
 import { HomeworkPage } from "./pages/HomeworkPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
@@ -49,7 +49,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/shorts" element={<ShortsPage />} />
                 <Route path="/konu-anlatimi" element={<KonuAnlatimiPage />} />
-                <Route path="/documents" element={<DocumentsPage />} />
+                
                 <Route path="/quizzes" element={<QuizzesPage />} />
                 <Route path="/homework" element={<HomeworkPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
