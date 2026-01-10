@@ -172,26 +172,37 @@ export const KonuAnlatimiPage: React.FC = () => {
   if (viewState === 'subjects') {
     return (
       <div className="space-y-8 animate-fade-in">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Konu Anlatımı</h1>
-          <p className="text-muted-foreground">Ders seçerek konu anlatım videolarına ulaşın</p>
+        <div className="text-center max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Konu Anlatımı
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Ders seçerek konu anlatım videolarına ulaşın
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {SUBJECTS.map((subject) => (
             <Card
               key={subject.id}
               className={cn(
-                "p-6 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg border-2",
+                "group relative overflow-hidden p-6 cursor-pointer transition-all duration-300",
+                "hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-card to-background",
                 subject.color
               )}
               onClick={() => handleSubjectSelect(subject)}
             >
-              <div className="flex items-center gap-4">
-                <span className="text-4xl">{subject.icon}</span>
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-background/80 flex items-center justify-center shadow-sm">
+                  <span className="text-4xl">{subject.icon}</span>
+                </div>
                 <div>
-                  <h3 className="font-semibold text-lg">{subject.name}</h3>
-                  <p className="text-sm opacity-70">10 Ünite</p>
+                  <h3 className="font-semibold text-lg mb-1">{subject.name}</h3>
+                  <p className="text-sm opacity-70 flex items-center gap-1">
+                    <BookOpen className="w-3 h-3" />
+                    10 Ünite
+                  </p>
                 </div>
               </div>
             </Card>
@@ -206,7 +217,7 @@ export const KonuAnlatimiPage: React.FC = () => {
     return (
       <div className="space-y-8 animate-fade-in">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={handleBack}>
+          <Button variant="ghost" size="icon" onClick={handleBack} className="shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
@@ -221,14 +232,16 @@ export const KonuAnlatimiPage: React.FC = () => {
         {/* Vocabulary button for English */}
         {selectedSubject.hasVocabulary && (
           <Card 
-            className="p-6 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg border-2 border-purple-500/30 bg-purple-500/5"
+            className="group p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border-2 border-purple-400/40 bg-gradient-to-br from-purple-50 to-violet-50"
             onClick={() => setViewState('vocabulary')}
           >
             <div className="flex items-center gap-4">
-              <span className="text-4xl">📚</span>
+              <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
+                <span className="text-3xl">📚</span>
+              </div>
               <div>
-                <h3 className="font-semibold text-lg">Kelime Hazinesi</h3>
-                <p className="text-sm text-muted-foreground">A1'den C1'e tüm seviyeler</p>
+                <h3 className="font-semibold text-lg text-purple-900">Kelime Hazinesi</h3>
+                <p className="text-sm text-purple-600">A1'den C1'e tüm seviyeler</p>
               </div>
             </div>
           </Card>
@@ -239,13 +252,17 @@ export const KonuAnlatimiPage: React.FC = () => {
             <Card
               key={unit.id}
               className={cn(
-                "p-6 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg text-center border-2",
+                "group relative overflow-hidden p-6 cursor-pointer transition-all duration-300",
+                "hover:scale-[1.05] hover:shadow-xl text-center border-2",
                 selectedSubject.color
               )}
               onClick={() => handleUnitSelect(unit)}
             >
-              <div className="text-4xl font-bold opacity-20 mb-2">{unit.number}</div>
-              <h3 className="font-semibold">{unit.name}</h3>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-foreground/5 to-transparent rounded-bl-full" />
+              <div className="text-5xl font-bold opacity-10 mb-2 transition-transform group-hover:scale-110">
+                {unit.number}
+              </div>
+              <h3 className="font-semibold relative">{unit.name}</h3>
             </Card>
           ))}
         </div>
