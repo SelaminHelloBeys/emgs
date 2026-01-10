@@ -540,6 +540,7 @@ export type Database = {
           question_text: string
         }[]
       }
+      has_completed_exam: { Args: { p_exam_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -547,6 +548,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_exam_creator: { Args: { p_exam_id: string }; Returns: boolean }
     }
     Enums: {
       app_role:

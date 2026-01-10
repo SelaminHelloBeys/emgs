@@ -152,20 +152,43 @@ export const TeacherDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* My Classes */}
+        {/* My Classes with Progress */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Sınıflarım</h2>
+          <h2 className="text-xl font-semibold">Sınıflarım - İlerleme Raporu</h2>
           <div className="space-y-3">
             {myClasses.map((cls) => (
               <Card key={cls.id} variant="interactive" className="p-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
                   <span className="font-semibold text-lg">{cls.name}</span>
                   <span className="text-xs bg-muted px-2 py-1 rounded-full">
                     {cls.students} öğrenci
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{cls.subject}</p>
-                <div className="flex items-center gap-1 text-xs text-apple-green">
+                <p className="text-sm text-muted-foreground mb-3">{cls.subject}</p>
+                
+                {/* Progress bars */}
+                <div className="space-y-2">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Ortalama İlerleme</span>
+                      <span className="font-medium">%72</span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full" style={{ width: '72%' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-muted-foreground">Ödev Tamamlama</span>
+                      <span className="font-medium">%85</span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-green-500 rounded-full" style={{ width: '85%' }} />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-1 text-xs text-apple-green mt-3">
                   <Clock className="w-3.5 h-3.5" />
                   {cls.nextLesson}
                 </div>

@@ -26,10 +26,9 @@ interface QuickTopic {
   summary: string;
   keyPoints: string[];
   commonMistakes: string[];
-  frequencyScore: number; // How often it appears in exams
+  frequencyScore: number;
 }
 
-// Mock data for most common topics
 const quickTopics: QuickTopic[] = [
   {
     id: '1',
@@ -120,23 +119,20 @@ export const LastMinuteMode: React.FC = () => {
   return (
     <>
       <Button
-        variant="destructive"
+        variant="outline"
         size="lg"
-        className="gap-2 animate-pulse hover:animate-none shadow-lg"
+        className="gap-2 border-orange-300 text-orange-600 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-400"
         onClick={() => setIsOpen(true)}
       >
-        <AlertTriangle className="w-5 h-5" />
-        🛟 Son Dakika Modu
-        <Badge variant="secondary" className="ml-1 bg-white/20">
-          ACİL
-        </Badge>
+        <LifeBuoy className="w-5 h-5" />
+        Son Dakika
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] p-0">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="flex items-center gap-2 text-2xl">
-              <LifeBuoy className="w-6 h-6 text-destructive" />
+              <LifeBuoy className="w-6 h-6 text-orange-500" />
               Son Dakika Modu - Panik Yok! 🛟
             </DialogTitle>
           </DialogHeader>
@@ -177,8 +173,8 @@ export const LastMinuteMode: React.FC = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-destructive/20 to-orange-500/20 flex items-center justify-center">
-                                <Flame className="w-6 h-6 text-destructive" />
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center">
+                                <Flame className="w-6 h-6 text-orange-500" />
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
@@ -194,7 +190,7 @@ export const LastMinuteMode: React.FC = () => {
                           </div>
 
                           {selectedTopic?.id === topic.id && (
-                            <div className="mt-4 pt-4 border-t space-y-4 animate-slide-up">
+                            <div className="mt-4 pt-4 border-t space-y-4 animate-in fade-in slide-in-from-top-2">
                               <div>
                                 <h4 className="font-medium text-sm mb-2 flex items-center gap-1">
                                   <Brain className="w-4 h-4" /> Özet
@@ -260,7 +256,7 @@ export const LastMinuteMode: React.FC = () => {
             <TabsContent value="tips" className="m-0">
               <ScrollArea className="h-[60vh] p-6">
                 <div className="space-y-4">
-                  <Card className="p-4 border-green-500/30 bg-green-50/50">
+                  <Card className="p-4 border-green-200 bg-green-50/50">
                     <h3 className="font-semibold flex items-center gap-2 text-green-700 mb-2">
                       🧘 Sakin Ol
                     </h3>
@@ -269,7 +265,7 @@ export const LastMinuteMode: React.FC = () => {
                     </p>
                   </Card>
 
-                  <Card className="p-4 border-blue-500/30 bg-blue-50/50">
+                  <Card className="p-4 border-blue-200 bg-blue-50/50">
                     <h3 className="font-semibold flex items-center gap-2 text-blue-700 mb-2">
                       📝 Eleme Yöntemi
                     </h3>
@@ -278,7 +274,7 @@ export const LastMinuteMode: React.FC = () => {
                     </p>
                   </Card>
 
-                  <Card className="p-4 border-purple-500/30 bg-purple-50/50">
+                  <Card className="p-4 border-purple-200 bg-purple-50/50">
                     <h3 className="font-semibold flex items-center gap-2 text-purple-700 mb-2">
                       ⏱️ Zaman Yönetimi
                     </h3>
@@ -287,7 +283,7 @@ export const LastMinuteMode: React.FC = () => {
                     </p>
                   </Card>
 
-                  <Card className="p-4 border-orange-500/30 bg-orange-50/50">
+                  <Card className="p-4 border-orange-200 bg-orange-50/50">
                     <h3 className="font-semibold flex items-center gap-2 text-orange-700 mb-2">
                       🎯 Önce Soruyu Oku
                     </h3>
@@ -296,7 +292,7 @@ export const LastMinuteMode: React.FC = () => {
                     </p>
                   </Card>
 
-                  <Card className="p-4 border-red-500/30 bg-red-50/50">
+                  <Card className="p-4 border-red-200 bg-red-50/50">
                     <h3 className="font-semibold flex items-center gap-2 text-red-700 mb-2">
                       🚫 Tahmin Değiştirme
                     </h3>
@@ -305,7 +301,7 @@ export const LastMinuteMode: React.FC = () => {
                     </p>
                   </Card>
 
-                  <Card className="p-4 border-teal-500/30 bg-teal-50/50">
+                  <Card className="p-4 border-teal-200 bg-teal-50/50">
                     <h3 className="font-semibold flex items-center gap-2 text-teal-700 mb-2">
                       💪 Kendine Güven
                     </h3>

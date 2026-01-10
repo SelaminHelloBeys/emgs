@@ -404,7 +404,13 @@ export const DenemelerPage: React.FC = () => {
                         <span className="text-sm">
                           Puan: <strong>{Math.round((exam.result.score / exam.result.total_questions) * 100)}%</strong>
                         </span>
-                        <Button variant="outline" size="sm">Sonuçları Gör</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => navigate(`/denemeler/${exam.id}/sonuc`)}
+                        >
+                          Sonuçları Gör
+                        </Button>
                       </div>
                     ) : (
                       <Button 

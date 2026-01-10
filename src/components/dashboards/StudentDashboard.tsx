@@ -8,7 +8,6 @@ import { useUserStats } from '@/hooks/useUserStats';
 import { useLessons } from '@/hooks/useLessons';
 import { useBadges } from '@/hooks/useBadges';
 import { useNavigate } from 'react-router-dom';
-import { StudentLeaderboard } from '@/components/StudentLeaderboard';
 import { LastMinuteMode } from '@/components/LastMinuteMode';
 import { LearningStyleQuickButton } from '@/components/LearningStyleSelector';
 import {
@@ -24,7 +23,6 @@ import {
   Loader2,
   Trophy,
   CheckCircle,
-  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -300,31 +298,6 @@ export const StudentDashboard: React.FC = () => {
             </div>
           </Card>
 
-          {/* Quick Actions */}
-          <Card variant="elevated" className="p-5">
-            <h3 className="font-semibold mb-4">Hızlı Erişim</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/denemeler')}>
-                <Target className="w-5 h-5" />
-                <span className="text-xs">Denemeler</span>
-              </Button>
-              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/konu-anlatimi')}>
-                <BookOpen className="w-5 h-5" />
-                <span className="text-xs">Dersler</span>
-              </Button>
-              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/rozetler')}>
-                <Trophy className="w-5 h-5" />
-                <span className="text-xs">Rozetler</span>
-              </Button>
-              <Button variant="appleSecondary" className="h-auto py-4 flex-col gap-2" onClick={() => navigate('/homework')}>
-                <FileText className="w-5 h-5" />
-                <span className="text-xs">Ödevler</span>
-              </Button>
-            </div>
-          </Card>
-
-          {/* Student Leaderboard */}
-          <StudentLeaderboard />
         </div>
       </div>
     </div>
