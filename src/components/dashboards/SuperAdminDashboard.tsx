@@ -1,45 +1,72 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { PlatformModesPanel } from '@/components/admin/PlatformModesPanel';
 import {
-  Globe,
   Users,
-  Building2,
   Video,
-  Shield,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  BarChart3,
+  FileText,
+  Target,
   Settings,
   Database,
+  Loader2,
 } from 'lucide-react';
 
-const platformStats = [
-  { label: 'Toplam Kullanıcı', value: '45,892', icon: Users, change: '+12%', color: 'text-primary' },
-  { label: 'Aktif Okul', value: '128', icon: Building2, change: '+5', color: 'text-apple-green' },
-  { label: 'Video İçerik', value: '8,456', icon: Video, change: '+234', color: 'text-apple-orange' },
-  { label: 'Günlük Aktif', value: '12,340', icon: TrendingUp, change: '+8%', color: 'text-apple-purple' },
-];
-
-const recentActions = [
-  { type: 'approve', message: 'Yeni öğretmen onaylandı: Ahmet Yılmaz', time: '5 dk önce', status: 'success' },
-  { type: 'warning', message: 'İçerik raporu: Uygunsuz video bildirimi', time: '15 dk önce', status: 'warning' },
-  { type: 'school', message: 'Yeni okul eklendi: Atatürk Lisesi', time: '1 saat önce', status: 'success' },
-  { type: 'system', message: 'Sistem güncellemesi tamamlandı', time: '3 saat önce', status: 'info' },
-];
-
-const pendingApprovals = [
-  { id: 1, name: 'Mehmet Kaya', school: 'Fatih Anadolu Lisesi', role: 'Öğretmen', date: '2 saat önce' },
-  { id: 2, name: 'Ayşe Demir', school: 'Atatürk Lisesi', role: 'Öğretmen', date: '5 saat önce' },
-  { id: 3, name: 'Ali Yıldız', school: 'Cumhuriyet Lisesi', role: 'Admin', date: '1 gün önce' },
-];
+interface PlatformStats {
+  totalUsers: number;
+  totalLessons: number;
+  totalExams: number;
+  totalHomework: number;
+}
 
 export const SuperAdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState<PlatformStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch real counts from database
+        const [profilesRes, lessonsRes, examsRes, homeworkRes] = await Promise.all([
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
+          supabase.from('lessons').select('id', { count: 'exact', head: true }),
+          supabase.from('exams').select('id', { count: 'exact', head: true }),
+          supabase.from('homework_assignments').select('id', { count: 'exact', head: true }),
+        ]);
+
+        setStats({
+          totalUsers: profilesRes.count || 0,
+          totalLessons: lessonsRes.count || 0,
+          totalExams: examsRes.count || 0,
+          totalHomework: homeworkRes.count || 0,
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const platformStats = [
+    { label: 'Toplam Kullanıcı', value: stats?.totalUsers || 0, icon: Users, color: 'text-primary' },
+    { label: 'Video İçerik', value: stats?.totalLessons || 0, icon: Video, color: 'text-apple-green' },
+    { label: 'Sınav', value: stats?.totalExams || 0, icon: Target, color: 'text-apple-orange' },
+    { label: 'Ödev', value: stats?.totalHomework || 0, icon: FileText, color: 'text-apple-purple' },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -73,9 +100,6 @@ export const SuperAdminDashboard: React.FC = () => {
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
                   <Icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
-                <span className="text-xs font-medium text-apple-green bg-apple-green/10 px-2 py-1 rounded-full">
-                  {stat.change}
-                </span>
               </div>
               <div className="text-2xl font-bold mb-1">{stat.value}</div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -84,91 +108,28 @@ export const SuperAdminDashboard: React.FC = () => {
         })}
       </div>
 
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-semibold">Son İşlemler</h2>
-          <Card variant="elevated" className="divide-y divide-border/50">
-            {recentActions.map((action, index) => (
-              <div key={index} className="p-4 flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                  action.status === 'success' ? 'bg-apple-green/10' :
-                  action.status === 'warning' ? 'bg-apple-orange/10' : 'bg-muted'
-                }`}>
-                  {action.status === 'success' ? <CheckCircle className="w-5 h-5 text-apple-green" /> :
-                   action.status === 'warning' ? <AlertTriangle className="w-5 h-5 text-apple-orange" /> :
-                   <Clock className="w-5 h-5 text-muted-foreground" />}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{action.message}</p>
-                  <p className="text-xs text-muted-foreground">{action.time}</p>
-                </div>
-              </div>
-            ))}
-          </Card>
-
-          {/* Quick Stats Chart Area */}
-          <Card variant="elevated" className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold">Platform Kullanımı</h3>
-              <Button variant="ghost" size="sm">Son 7 Gün</Button>
-            </div>
-            <div className="h-48 flex items-end justify-between gap-2">
-              {[65, 45, 80, 55, 90, 75, 85].map((height, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                  <div 
-                    className="w-full bg-primary/20 rounded-t-lg transition-all hover:bg-primary/30"
-                    style={{ height: `${height}%` }}
-                  >
-                    <div 
-                      className="w-full bg-primary rounded-t-lg transition-all"
-                      style={{ height: '60%' }}
-                    />
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'][i]}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        {/* Pending Approvals */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Bekleyen Onaylar</h2>
-            <span className="text-xs bg-apple-orange/10 text-apple-orange px-2 py-1 rounded-full font-medium">
-              {pendingApprovals.length} bekliyor
-            </span>
+      {/* Platform Info */}
+      <Card variant="elevated" className="p-6">
+        <h3 className="font-semibold mb-4">Platform Durumu</h3>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="text-center p-4 rounded-xl bg-surface-secondary">
+            <div className="text-2xl font-bold text-primary mb-1">{stats?.totalUsers || 0}</div>
+            <div className="text-sm text-muted-foreground">Kayıtlı Kullanıcı</div>
           </div>
-          <div className="space-y-3">
-            {pendingApprovals.map((item) => (
-              <Card key={item.id} variant="default" className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">{item.school}</p>
-                  </div>
-                  <span className="text-xs bg-muted px-2 py-1 rounded-full">{item.role}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{item.date}</span>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="text-apple-red">
-                      Reddet
-                    </Button>
-                    <Button variant="apple" size="sm">
-                      Onayla
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+          <div className="text-center p-4 rounded-xl bg-surface-secondary">
+            <div className="text-2xl font-bold text-apple-green mb-1">{stats?.totalLessons || 0}</div>
+            <div className="text-sm text-muted-foreground">Video Ders</div>
+          </div>
+          <div className="text-center p-4 rounded-xl bg-surface-secondary">
+            <div className="text-2xl font-bold text-apple-orange mb-1">{stats?.totalExams || 0}</div>
+            <div className="text-sm text-muted-foreground">Sınav</div>
+          </div>
+          <div className="text-center p-4 rounded-xl bg-surface-secondary">
+            <div className="text-2xl font-bold text-apple-purple mb-1">{stats?.totalHomework || 0}</div>
+            <div className="text-sm text-muted-foreground">Ödev</div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Platform Modes */}
       <PlatformModesPanel />

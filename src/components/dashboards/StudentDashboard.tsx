@@ -164,7 +164,7 @@ export const StudentDashboard: React.FC = () => {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Öğrenmeye Devam Et</h2>
-            <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/lessons')}>
+            <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/konu-anlatimi')}>
               Tümünü Gör
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -179,7 +179,7 @@ export const StudentDashboard: React.FC = () => {
               <Video className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <h3 className="font-medium mb-1">Henüz ders izlemediniz</h3>
               <p className="text-sm text-muted-foreground mb-4">Derslere göz atarak öğrenmeye başlayın</p>
-              <Button variant="apple" onClick={() => navigate('/lessons')}>
+              <Button variant="apple" onClick={() => navigate('/konu-anlatimi')}>
                 Derslere Git
               </Button>
             </Card>
@@ -218,7 +218,7 @@ export const StudentDashboard: React.FC = () => {
                           </div>
                         </div>
                       ) : (
-                        <Button variant="apple" size="sm" onClick={() => navigate('/lessons')}>
+                        <Button variant="apple" size="sm" onClick={() => navigate('/konu-anlatimi')}>
                           Başla
                         </Button>
                       )}
