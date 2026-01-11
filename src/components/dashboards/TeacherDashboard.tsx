@@ -1,43 +1,80 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLessons } from '@/hooks/useLessons';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import {
-  Upload,
   Video,
   FileText,
   Users,
   BarChart3,
-  Clock,
   Play,
   ChevronRight,
   Plus,
   Eye,
   Heart,
-  MessageSquare,
+  Loader2,
+  Target,
 } from 'lucide-react';
 
-const recentUploads = [
-  { id: 1, title: 'Türev Giriş', type: 'video', views: 234, likes: 45, date: '2 saat önce' },
-  { id: 2, title: 'Limit Konu Özeti', type: 'pdf', views: 156, likes: 23, date: '1 gün önce' },
-  { id: 3, title: 'İntegral Formülleri', type: 'short', views: 892, likes: 156, date: '3 gün önce' },
-];
-
-const myClasses = [
-  { id: 1, name: '11-A', students: 32, subject: 'Matematik', nextLesson: 'Bugün 10:00' },
-  { id: 2, name: '11-B', students: 28, subject: 'Matematik', nextLesson: 'Bugün 14:00' },
-  { id: 3, name: '12-A', students: 30, subject: 'Fizik', nextLesson: 'Yarın 09:00' },
-];
-
-const stats = [
-  { label: 'Toplam Ders', value: '48', icon: Video, color: 'text-primary' },
-  { label: 'Öğrenci', value: '156', icon: Users, color: 'text-apple-green' },
-  { label: 'Görüntülenme', value: '12.4K', icon: Eye, color: 'text-apple-orange' },
-  { label: 'Beğeni', value: '2.1K', icon: Heart, color: 'text-apple-red' },
-];
+interface TeacherStats {
+  totalLessons: number;
+  totalExams: number;
+  totalHomework: number;
+}
 
 export const TeacherDashboard: React.FC = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { lessons, isLoading: lessonsLoading } = useLessons();
+  const navigate = useNavigate();
+  const [stats, setStats] = useState<TeacherStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user) return;
+      
+      try {
+        // Fetch lessons created by this teacher
+        const [lessonsRes, examsRes, homeworkRes] = await Promise.all([
+          supabase.from('lessons').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
+          supabase.from('exams').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
+          supabase.from('homework_assignments').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
+        ]);
+
+        setStats({
+          totalLessons: lessonsRes.count || 0,
+          totalExams: examsRes.count || 0,
+          totalHomework: homeworkRes.count || 0,
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [user]);
+
+  // Get my lessons (created by this user)
+  const myLessons = lessons.filter(l => l.created_by === user?.id).slice(0, 3);
+
+  const statsData = [
+    { label: 'Oluşturduğum Ders', value: stats?.totalLessons || 0, icon: Video, color: 'text-primary' },
+    { label: 'Oluşturduğum Sınav', value: stats?.totalExams || 0, icon: Target, color: 'text-apple-green' },
+    { label: 'Oluşturduğum Ödev', value: stats?.totalHomework || 0, icon: FileText, color: 'text-apple-orange' },
+  ];
+
+  if (isLoading || lessonsLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -51,15 +88,15 @@ export const TeacherDashboard: React.FC = () => {
             {profile?.subjects?.join(', ') || 'Öğretmen'} • {profile?.school_name || 'Okul'}
           </p>
         </div>
-        <Button variant="apple" className="gap-2">
+        <Button variant="apple" className="gap-2" onClick={() => navigate('/upload')}>
           <Plus className="w-4 h-4" />
           Yeni İçerik
         </Button>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
-        {stats.map((stat) => {
+      <div className="grid grid-cols-3 gap-4 stagger-children">
+        {statsData.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label} variant="stat" className="p-5">
@@ -77,125 +114,80 @@ export const TeacherDashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card variant="interactive" className="p-5 text-center">
+        <Card variant="interactive" className="p-5 text-center" onClick={() => navigate('/upload')}>
           <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
             <Video className="w-6 h-6 text-primary" />
           </div>
           <h3 className="font-medium mb-1">Ders Yükle</h3>
           <p className="text-xs text-muted-foreground">Video ders ekle</p>
         </Card>
-        <Card variant="interactive" className="p-5 text-center">
+        <Card variant="interactive" className="p-5 text-center" onClick={() => navigate('/upload')}>
           <div className="w-12 h-12 rounded-2xl bg-apple-orange/10 flex items-center justify-center mx-auto mb-3">
             <Play className="w-6 h-6 text-apple-orange" />
           </div>
           <h3 className="font-medium mb-1">Short Yükle</h3>
           <p className="text-xs text-muted-foreground">Kısa video ekle</p>
         </Card>
-        <Card variant="interactive" className="p-5 text-center">
+        <Card variant="interactive" className="p-5 text-center" onClick={() => navigate('/upload')}>
           <div className="w-12 h-12 rounded-2xl bg-apple-green/10 flex items-center justify-center mx-auto mb-3">
             <FileText className="w-6 h-6 text-apple-green" />
           </div>
           <h3 className="font-medium mb-1">PDF Yükle</h3>
           <p className="text-xs text-muted-foreground">Doküman ekle</p>
         </Card>
-        <Card variant="interactive" className="p-5 text-center">
+        <Card variant="interactive" className="p-5 text-center" onClick={() => navigate('/denemeler')}>
           <div className="w-12 h-12 rounded-2xl bg-apple-purple/10 flex items-center justify-center mx-auto mb-3">
             <BarChart3 className="w-6 h-6 text-apple-purple" />
           </div>
-          <h3 className="font-medium mb-1">Quiz Oluştur</h3>
+          <h3 className="font-medium mb-1">Sınav Oluştur</h3>
           <p className="text-xs text-muted-foreground">Test hazırla</p>
         </Card>
       </div>
 
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Uploads */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Son Yüklemeler</h2>
-            <Button variant="ghost" size="sm" className="gap-1">
-              Tümünü Gör
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
+      {/* My Lessons */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Son Yüklemelerim</h2>
+          <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/konu-anlatimi')}>
+            Tümünü Gör
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
 
+        {myLessons.length === 0 ? (
+          <Card variant="elevated" className="p-8 text-center">
+            <Video className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <h3 className="font-medium mb-1">Henüz içerik yüklemediniz</h3>
+            <p className="text-sm text-muted-foreground mb-4">İlk dersinizi yükleyerek başlayın</p>
+            <Button variant="apple" onClick={() => navigate('/upload')}>
+              İçerik Yükle
+            </Button>
+          </Card>
+        ) : (
           <div className="space-y-3">
-            {recentUploads.map((item) => (
+            {myLessons.map((item) => (
               <Card key={item.id} variant="default" className="p-4">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    item.type === 'video' ? 'bg-primary/10' :
-                    item.type === 'short' ? 'bg-apple-orange/10' : 'bg-apple-green/10'
+                    item.content_type === 'video' ? 'bg-primary/10' :
+                    item.content_type === 'short' ? 'bg-apple-orange/10' : 'bg-apple-green/10'
                   }`}>
-                    {item.type === 'video' ? <Video className="w-5 h-5 text-primary" /> :
-                     item.type === 'short' ? <Play className="w-5 h-5 text-apple-orange" /> :
+                    {item.content_type === 'video' ? <Video className="w-5 h-5 text-primary" /> :
+                     item.content_type === 'short' ? <Play className="w-5 h-5 text-apple-orange" /> :
                      <FileText className="w-5 h-5 text-apple-green" />}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium">{item.title}</h3>
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3.5 h-3.5" /> {item.views}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Heart className="w-3.5 h-3.5" /> {item.likes}
-                      </span>
-                      <span>{item.date}</span>
+                      <span>{item.subject}</span>
+                      <span>{item.duration || ''}</span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    Düzenle
-                  </Button>
                 </div>
               </Card>
             ))}
           </div>
-        </div>
-
-        {/* My Classes with Progress */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Sınıflarım - İlerleme Raporu</h2>
-          <div className="space-y-3">
-            {myClasses.map((cls) => (
-              <Card key={cls.id} variant="interactive" className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-lg">{cls.name}</span>
-                  <span className="text-xs bg-muted px-2 py-1 rounded-full">
-                    {cls.students} öğrenci
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">{cls.subject}</p>
-                
-                {/* Progress bars */}
-                <div className="space-y-2">
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Ortalama İlerleme</span>
-                      <span className="font-medium">%72</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: '72%' }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Ödev Tamamlama</span>
-                      <span className="font-medium">%85</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 rounded-full" style={{ width: '85%' }} />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-1 text-xs text-apple-green mt-3">
-                  <Clock className="w-3.5 h-3.5" />
-                  {cls.nextLesson}
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -62,12 +62,9 @@ const App = () => (
                 <Route path="/denemeler/:examId/sonuc" element={<ExamResultsPage />} />
                 <Route path="/rozetler" element={<BadgesPage />} />
                 
-                {/* Placeholder routes for other features */}
+                {/* Additional routes */}
                 <Route path="/my-classes" element={<Dashboard />} />
                 <Route path="/student-tracking" element={<Dashboard />} />
-                <Route path="/users" element={<Dashboard />} />
-                <Route path="/schools" element={<Dashboard />} />
-                <Route path="/moderation" element={<Dashboard />} />
                 <Route path="/school-management" element={<Dashboard />} />
               </Route>
               
