@@ -27,7 +27,7 @@ export const VicePrincipalDashboard: React.FC = () => {
       try {
         const [lessonsRes, examsRes, homeworkRes] = await Promise.all([
           supabase.from('lessons').select('id', { count: 'exact', head: true }),
-          supabase.from('exams').select('id', { count: 'exact', head: true }),
+          supabase.from('trial_exams').select('id', { count: 'exact', head: true }),
           supabase.from('homework_assignments').select('id', { count: 'exact', head: true }),
         ]);
 

@@ -33,7 +33,7 @@ export const SuperAdminDashboard: React.FC = () => {
         const [profilesRes, lessonsRes, examsRes, homeworkRes] = await Promise.all([
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('lessons').select('id', { count: 'exact', head: true }),
-          supabase.from('exams').select('id', { count: 'exact', head: true }),
+          supabase.from('trial_exams').select('id', { count: 'exact', head: true }),
           supabase.from('homework_assignments').select('id', { count: 'exact', head: true }),
         ]);
 

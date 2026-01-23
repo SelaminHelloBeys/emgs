@@ -44,20 +44,20 @@ export const useGlobalSearch = () => {
         });
       }
 
-      // Search exams
-      const { data: exams } = await supabase
-        .from('exams')
-        .select('id, title, subject, description')
-        .or(`title.ilike.%${query}%,subject.ilike.%${query}%`)
+      // Search trial exams
+      const { data: trialExams } = await supabase
+        .from('trial_exams')
+        .select('id, title, description, grade')
+        .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
         .limit(5);
 
-      if (exams) {
-        exams.forEach(e => {
+      if (trialExams) {
+        trialExams.forEach(e => {
           searchResults.push({
             id: e.id,
             title: e.title,
             type: 'exam',
-            description: e.subject,
+            description: `${e.grade}. Sınıf`,
             url: '/denemeler'
           });
         });
