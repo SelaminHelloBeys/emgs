@@ -20,8 +20,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { SmartboardPage } from "./pages/SmartboardPage";
 import { TeacherContentUploadPage } from "./pages/TeacherContentUploadPage";
 import { DenemelerPage } from "./pages/DenemelerPage";
-import { ExamTakingPage } from "./pages/ExamTakingPage";
-import { ExamResultsPage } from "./pages/ExamResultsPage";
+import { DenemeDetailPage } from "./pages/DenemeDetailPage";
 import { BadgesPage } from "./pages/BadgesPage";
 import NotFound from "./pages/NotFound";
 
@@ -58,14 +57,8 @@ const App = () => (
                 <Route path="/smartboard" element={<SmartboardPage />} />
                 <Route path="/upload" element={<TeacherContentUploadPage />} />
                 <Route path="/denemeler" element={<DenemelerPage />} />
-                <Route path="/denemeler/:examId" element={<ExamTakingPage />} />
-                <Route path="/denemeler/:examId/sonuc" element={<ExamResultsPage />} />
+                <Route path="/denemeler/:id" element={<DenemeDetailPage />} />
                 <Route path="/rozetler" element={<BadgesPage />} />
-                
-                {/* Additional routes */}
-                <Route path="/my-classes" element={<Dashboard />} />
-                <Route path="/student-tracking" element={<Dashboard />} />
-                <Route path="/school-management" element={<Dashboard />} />
               </Route>
               
               {/* Redirects */}

@@ -40,7 +40,7 @@ export const TeacherDashboard: React.FC = () => {
         // Fetch lessons created by this teacher
         const [lessonsRes, examsRes, homeworkRes] = await Promise.all([
           supabase.from('lessons').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
-          supabase.from('exams').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
+          supabase.from('trial_exams').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
           supabase.from('homework_assignments').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
         ]);
 

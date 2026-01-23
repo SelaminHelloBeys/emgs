@@ -34,12 +34,12 @@ import {
 
 // Sabit ders ve ünite listesi
 const SUBJECTS = [
-  { id: 'matematik', name: 'Matematik', icon: '📐', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  { id: 'turkce', name: 'Türkçe', icon: '📝', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
-  { id: 'fen-bilimleri', name: 'Fen Bilimleri', icon: '🔬', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
-  { id: 'sosyal-bilgiler', name: 'Sosyal Bilgiler', icon: '🌍', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
-  { id: 'ingilizce', name: 'İngilizce', icon: '🇬🇧', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', hasVocabulary: true },
-  { id: 'din-ahlak', name: 'Din ve Ahlak Bilgisi', icon: '📖', color: 'bg-teal-500/10 text-teal-500 border-teal-500/20' },
+  { id: 'matematik', name: 'Matematik', icon: '📐', color: 'bg-slate-100 text-slate-700', bgColor: 'bg-slate-500' },
+  { id: 'turkce', name: 'Türkçe', icon: '📝', color: 'bg-pink-100 text-pink-700', bgColor: 'bg-pink-500' },
+  { id: 'fen-bilimleri', name: 'Fen Bilimleri', icon: '🔬', color: 'bg-emerald-100 text-emerald-700', bgColor: 'bg-emerald-500' },
+  { id: 'sosyal-bilgiler', name: 'Sosyal Bilgiler', icon: '🌍', color: 'bg-amber-100 text-amber-700', bgColor: 'bg-amber-500' },
+  { id: 'ingilizce', name: 'İngilizce', icon: '🇬🇧', color: 'bg-violet-100 text-violet-700', bgColor: 'bg-violet-500', hasVocabulary: true },
+  { id: 'din-ahlak', name: 'Din ve Ahlak Bilgisi', icon: '📖', color: 'bg-cyan-100 text-cyan-700', bgColor: 'bg-cyan-500' },
 ];
 
 const UNITS = Array.from({ length: 10 }, (_, i) => ({
@@ -187,14 +187,14 @@ export const KonuAnlatimiPage: React.FC = () => {
               key={subject.id}
               className={cn(
                 "group relative overflow-hidden p-6 cursor-pointer transition-all duration-300",
-                "hover:scale-[1.03] hover:shadow-xl border-2 bg-gradient-to-br from-card to-background",
+                "hover:scale-[1.03] hover:shadow-xl border-0",
                 subject.color
               )}
               onClick={() => handleSubjectSelect(subject)}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-background/80 flex items-center justify-center shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-white/60 flex items-center justify-center shadow-sm">
                   <span className="text-4xl">{subject.icon}</span>
                 </div>
                 <div>
@@ -232,16 +232,16 @@ export const KonuAnlatimiPage: React.FC = () => {
         {/* Vocabulary button for English */}
         {selectedSubject.hasVocabulary && (
           <Card 
-            className="group p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border-2 border-purple-400/40 bg-gradient-to-br from-purple-50 to-violet-50"
+            className="group p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border-0 bg-violet-100 text-violet-700"
             onClick={() => setViewState('vocabulary')}
           >
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-2xl bg-white/60 flex items-center justify-center">
                 <span className="text-3xl">📚</span>
               </div>
               <div>
-                <h3 className="font-semibold text-lg text-purple-900">Kelime Hazinesi</h3>
-                <p className="text-sm text-purple-600">A1'den C1'e tüm seviyeler</p>
+                <h3 className="font-semibold text-lg">Kelime Hazinesi</h3>
+                <p className="text-sm opacity-70">A1'den C1'e tüm seviyeler</p>
               </div>
             </div>
           </Card>
@@ -253,13 +253,13 @@ export const KonuAnlatimiPage: React.FC = () => {
               key={unit.id}
               className={cn(
                 "group relative overflow-hidden p-6 cursor-pointer transition-all duration-300",
-                "hover:scale-[1.05] hover:shadow-xl text-center border-2",
+                "hover:scale-[1.05] hover:shadow-xl text-center border-0",
                 selectedSubject.color
               )}
               onClick={() => handleUnitSelect(unit)}
             >
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-foreground/5 to-transparent rounded-bl-full" />
-              <div className="text-5xl font-bold opacity-10 mb-2 transition-transform group-hover:scale-110">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-black/5 to-transparent rounded-bl-full" />
+              <div className="text-5xl font-bold opacity-20 mb-2 transition-transform group-hover:scale-110">
                 {unit.number}
               </div>
               <h3 className="font-semibold relative">{unit.name}</h3>

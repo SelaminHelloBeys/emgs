@@ -74,136 +74,6 @@ export type Database = {
         }
         Relationships: []
       }
-      exam_questions: {
-        Row: {
-          correct_option: string
-          created_at: string
-          exam_id: string
-          id: string
-          option_a: string
-          option_b: string
-          option_c: string
-          option_d: string
-          question_order: number
-          question_text: string
-        }
-        Insert: {
-          correct_option: string
-          created_at?: string
-          exam_id: string
-          id?: string
-          option_a: string
-          option_b: string
-          option_c: string
-          option_d: string
-          question_order?: number
-          question_text: string
-        }
-        Update: {
-          correct_option?: string
-          created_at?: string
-          exam_id?: string
-          id?: string
-          option_a?: string
-          option_b?: string
-          option_c?: string
-          option_d?: string
-          question_order?: number
-          question_text?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "exam_questions_exam_id_fkey"
-            columns: ["exam_id"]
-            isOneToOne: false
-            referencedRelation: "exams"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      exam_results: {
-        Row: {
-          answers: Json
-          completed_at: string | null
-          exam_id: string
-          id: string
-          score: number
-          started_at: string
-          status: string
-          total_questions: number
-          user_id: string
-        }
-        Insert: {
-          answers?: Json
-          completed_at?: string | null
-          exam_id: string
-          id?: string
-          score?: number
-          started_at?: string
-          status?: string
-          total_questions?: number
-          user_id: string
-        }
-        Update: {
-          answers?: Json
-          completed_at?: string | null
-          exam_id?: string
-          id?: string
-          score?: number
-          started_at?: string
-          status?: string
-          total_questions?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "exam_results_exam_id_fkey"
-            columns: ["exam_id"]
-            isOneToOne: false
-            referencedRelation: "exams"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      exams: {
-        Row: {
-          created_at: string
-          created_by: string
-          description: string | null
-          duration: number
-          grade: string
-          id: string
-          is_published: boolean
-          subject: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          description?: string | null
-          duration?: number
-          grade: string
-          id?: string
-          is_published?: boolean
-          subject: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          duration?: number
-          grade?: string
-          id?: string
-          is_published?: boolean
-          subject?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       homework_assignments: {
         Row: {
           attachments: string[] | null
@@ -395,6 +265,98 @@ export type Database = {
           subjects?: string[] | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      student_exam_participation: {
+        Row: {
+          blank_count: number | null
+          class_rank: number | null
+          correct_count: number | null
+          created_at: string
+          exam_id: string
+          general_rank: number | null
+          id: string
+          net_score: number | null
+          participated: boolean
+          updated_at: string
+          user_id: string
+          wrong_count: number | null
+        }
+        Insert: {
+          blank_count?: number | null
+          class_rank?: number | null
+          correct_count?: number | null
+          created_at?: string
+          exam_id: string
+          general_rank?: number | null
+          id?: string
+          net_score?: number | null
+          participated?: boolean
+          updated_at?: string
+          user_id: string
+          wrong_count?: number | null
+        }
+        Update: {
+          blank_count?: number | null
+          class_rank?: number | null
+          correct_count?: number | null
+          created_at?: string
+          exam_id?: string
+          general_rank?: number | null
+          id?: string
+          net_score?: number | null
+          participated?: boolean
+          updated_at?: string
+          user_id?: string
+          wrong_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_exam_participation_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "trial_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trial_exams: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          exam_date: string
+          grade: string
+          id: string
+          pdf_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          exam_date: string
+          grade: string
+          id?: string
+          pdf_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          exam_date?: string
+          grade?: string
+          id?: string
+          pdf_url?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
