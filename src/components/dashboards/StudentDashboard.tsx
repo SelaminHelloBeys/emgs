@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { useVideoProgress } from '@/hooks/useVideoProgress';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useLessons } from '@/hooks/useLessons';
 import { useBadges } from '@/hooks/useBadges';
+import { useTrialExams } from '@/hooks/useTrialExams';
 import { useNavigate } from 'react-router-dom';
 import { LastMinuteMode } from '@/components/LastMinuteMode';
 import { LearningStyleQuickButton } from '@/components/LearningStyleSelector';
@@ -17,14 +18,12 @@ import {
   Award,
   Play,
   ChevronRight,
-  BookOpen,
-  FileText,
   Search,
   Loader2,
-  Trophy,
-  CheckCircle,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const StudentDashboard: React.FC = () => {
   const { profile } = useAuth();
@@ -32,20 +31,43 @@ export const StudentDashboard: React.FC = () => {
   const { stats, isLoading: statsLoading } = useUserStats();
   const { lessons, isLoading: lessonsLoading } = useLessons();
   const { userBadges, isLoading: badgesLoading } = useBadges();
+  const { exams, isLoading: examsLoading } = useTrialExams();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Trial exam stats
+  const participatedExams = exams.filter(e => e.participation?.participated);
+  const avgNet = participatedExams.length > 0
+    ? participatedExams.reduce((acc, e) => acc + (e.participation?.net_score || 0), 0) / participatedExams.length
+    : 0;
+  const bestNet = participatedExams.length > 0
+    ? Math.max(...participatedExams.map(e => e.participation?.net_score || 0))
+    : 0;
+
+  // Trend data for chart (sorted by date)
+  const trendData = participatedExams
+    .sort((a, b) => new Date(a.exam_date).getTime() - new Date(b.exam_date).getTime())
+    .map(e => ({
+      name: e.title.length > 12 ? e.title.slice(0, 12) + '...' : e.title,
+      net: e.participation?.net_score || 0,
+      dogru: e.participation?.correct_count || 0,
+      yanlis: e.participation?.wrong_count || 0,
+    }));
+
+  // Net trend direction
+  const netTrend = trendData.length >= 2
+    ? trendData[trendData.length - 1].net - trendData[trendData.length - 2].net
+    : 0;
 
   // Get continue learning lessons (in progress)
   const continueLearning = watchedVideos
     .filter(v => v.progress > 0 && v.progress < 100 && v.lesson)
     .slice(0, 3);
 
-  // Get new lessons user hasn't started
   const newLessons = lessons
     .filter(lesson => !watchedVideos.some(w => w.lesson_id === lesson.id))
     .slice(0, 3);
 
-  // Combine for display
   const displayLessons = [
     ...continueLearning.map(v => ({
       id: v.lesson_id,
@@ -63,7 +85,6 @@ export const StudentDashboard: React.FC = () => {
     }))
   ].slice(0, 3);
 
-  // Filter lessons by search
   const filteredLessons = searchQuery
     ? lessons.filter(l => 
         l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -71,20 +92,17 @@ export const StudentDashboard: React.FC = () => {
       )
     : [];
 
-  // Get completed videos count
   const completedVideos = watchedVideos.filter(v => v.completed).length;
-
-  // Get recent badges (last 3)
   const recentBadges = userBadges.slice(0, 3);
 
   const statsData = [
     { label: 'İzlenen Ders', value: completedVideos, icon: Video, change: 'ders' },
-    { label: 'Çözülen Deneme', value: stats?.exams_completed || 0, icon: Target, change: 'deneme' },
+    { label: 'Girilen Deneme', value: participatedExams.length, icon: Target, change: 'deneme' },
     { label: 'Teslim Edilen Ödev', value: stats?.homework_submitted || 0, icon: Flame, change: 'ödev' },
     { label: 'Kazanılan Rozet', value: userBadges.length, icon: Award, change: 'rozet' },
   ];
 
-  const isLoading = progressLoading || statsLoading || lessonsLoading || badgesLoading;
+  const isLoading = progressLoading || statsLoading || lessonsLoading || badgesLoading || examsLoading;
 
   return (
     <div className="space-y-8">
@@ -119,9 +137,9 @@ export const StudentDashboard: React.FC = () => {
               {filteredLessons.slice(0, 5).map(lesson => (
                 <button
                   key={lesson.id}
-                  className="w-full p-3 text-left hover:bg-surface-secondary flex items-center gap-3"
+                  className="w-full p-3 text-left hover:bg-muted flex items-center gap-3"
                   onClick={() => {
-                    navigate('/lessons');
+                    navigate('/konu-anlatimi');
                     setSearchQuery('');
                   }}
                 >
@@ -152,11 +170,66 @@ export const StudentDashboard: React.FC = () => {
               </div>
               <div className="text-2xl font-bold mb-1">{stat.value}</div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>
-              <div className="text-xs text-apple-green mt-1">{stat.change}</div>
+              <div className="text-xs text-muted-foreground mt-1">{stat.change}</div>
             </Card>
           );
         })}
       </div>
+
+      {/* Deneme Stats Section */}
+      {participatedExams.length > 0 && (
+        <div className="grid lg:grid-cols-3 gap-4">
+          <Card className="p-5">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-primary">{avgNet.toFixed(2)}</p>
+              <p className="text-sm text-muted-foreground mt-1">Ortalama Net</p>
+            </div>
+          </Card>
+          <Card className="p-5">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-green-600">{bestNet.toFixed(2)}</p>
+              <p className="text-sm text-muted-foreground mt-1">En Yüksek Net</p>
+            </div>
+          </Card>
+          <Card className="p-5">
+            <div className="text-center flex flex-col items-center">
+              <div className="flex items-center gap-2">
+                <p className="text-3xl font-bold">{netTrend >= 0 ? '+' : ''}{netTrend.toFixed(2)}</p>
+                {netTrend >= 0 ? (
+                  <TrendingUp className="w-6 h-6 text-green-500" />
+                ) : (
+                  <TrendingDown className="w-6 h-6 text-red-500" />
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">Son Değişim</p>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Trend Chart */}
+      {trendData.length >= 2 && (
+        <Card className="p-5">
+          <h3 className="font-semibold mb-4">Net Puan Trendi</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))' }}
+                formatter={(value: number, name: string) => {
+                  const labels: Record<string, string> = { net: 'Net', dogru: 'Doğru', yanlis: 'Yanlış' };
+                  return [value, labels[name] || name];
+                }}
+              />
+              <Line type="monotone" dataKey="net" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
+              <Line type="monotone" dataKey="dogru" stroke="#22c55e" strokeWidth={1.5} strokeDasharray="5 5" dot={false} />
+              <Line type="monotone" dataKey="yanlis" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 5" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-3 gap-6">
@@ -197,9 +270,7 @@ export const StudentDashboard: React.FC = () => {
                           {lesson.subject}
                         </span>
                         {lesson.duration && (
-                          <span className="text-xs text-muted-foreground">
-                            {lesson.duration}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{lesson.duration}</span>
                         )}
                       </div>
                       <h3 className="font-medium truncate">{lesson.title}</h3>
@@ -207,20 +278,13 @@ export const StudentDashboard: React.FC = () => {
                     <div className="hidden sm:block">
                       {lesson.progress > 0 ? (
                         <div className="w-24">
-                          <div className="text-xs text-muted-foreground mb-1 text-right">
-                            %{lesson.progress}
-                          </div>
+                          <div className="text-xs text-muted-foreground mb-1 text-right">%{lesson.progress}</div>
                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full transition-all"
-                              style={{ width: `${lesson.progress}%` }}
-                            />
+                            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${lesson.progress}%` }} />
                           </div>
                         </div>
                       ) : (
-                        <Button variant="apple" size="sm" onClick={() => navigate('/konu-anlatimi')}>
-                          Başla
-                        </Button>
+                        <Button variant="apple" size="sm" onClick={() => navigate('/konu-anlatimi')}>Başla</Button>
                       )}
                     </div>
                   </div>
@@ -234,7 +298,7 @@ export const StudentDashboard: React.FC = () => {
             <div className="mt-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Son Kazanılan Rozetler</h2>
-                <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/badges')}>
+                <Button variant="ghost" size="sm" className="gap-1" onClick={() => navigate('/rozetler')}>
                   Tümünü Gör
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -265,22 +329,16 @@ export const StudentDashboard: React.FC = () => {
                   <span className="font-medium">{completedVideos}</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 rounded-full transition-all"
-                    style={{ width: `${Math.min((completedVideos / 10) * 100, 100)}%` }}
-                  />
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min((completedVideos / 10) * 100, 100)}%` }} />
                 </div>
               </div>
               <div>
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Tamamlanan Sınavlar</span>
-                  <span className="font-medium">{stats?.exams_completed || 0}</span>
+                  <span className="text-muted-foreground">Girilen Denemeler</span>
+                  <span className="font-medium">{participatedExams.length}</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-purple-500 rounded-full transition-all"
-                    style={{ width: `${Math.min(((stats?.exams_completed || 0) / 5) * 100, 100)}%` }}
-                  />
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min((participatedExams.length / 5) * 100, 100)}%` }} />
                 </div>
               </div>
               <div>
@@ -289,15 +347,11 @@ export const StudentDashboard: React.FC = () => {
                   <span className="font-medium">{userBadges.length}</span>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-yellow-500 rounded-full transition-all"
-                    style={{ width: `${Math.min((userBadges.length / 10) * 100, 100)}%` }}
-                  />
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min((userBadges.length / 10) * 100, 100)}%` }} />
                 </div>
               </div>
             </div>
           </Card>
-
         </div>
       </div>
     </div>

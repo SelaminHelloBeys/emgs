@@ -28,6 +28,7 @@ import {
   Users,
   Settings,
   Video,
+  FileText,
 } from 'lucide-react';
 import { roleLabels } from '@/types/user';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,7 @@ import { UserManagementPanel } from '@/components/admin/UserManagementPanel';
 import { ContentManagementPanel } from '@/components/admin/ContentManagementPanel';
 import { NotificationManagementPanel } from '@/components/admin/NotificationManagementPanel';
 import { PlatformModesPanel } from '@/components/admin/PlatformModesPanel';
+import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPanel';
 
 type Language = 'tr' | 'en' | 'de';
 
@@ -383,6 +385,10 @@ export const SettingsPage: React.FC = () => {
                   <Settings className="w-4 h-4" />
                   Platform
                 </TabsTrigger>
+                <TabsTrigger value="exams" className="gap-2">
+                  <FileText className="w-4 h-4" />
+                  Denemeler
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="users" className="mt-6">
@@ -399,6 +405,10 @@ export const SettingsPage: React.FC = () => {
 
               <TabsContent value="platform" className="mt-6">
                 <PlatformModesPanel />
+              </TabsContent>
+
+              <TabsContent value="exams" className="mt-6">
+                <ExamParticipationPanel />
               </TabsContent>
             </Tabs>
           </TabsContent>
