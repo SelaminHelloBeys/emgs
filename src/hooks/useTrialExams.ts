@@ -112,7 +112,11 @@ export const useTrialExams = () => {
         .from('exam-pdfs')
         .upload(pdfPath, data.pdf_file);
 
-      if (pdfError) throw pdfError;
+      if (pdfError) {
+        console.error('PDF upload error:', pdfError);
+        toast.error(`PDF yüklenirken hata: ${pdfError.message}`);
+        return { error: pdfError };
+      }
 
       const { data: pdfUrlData } = supabase.storage
         .from('exam-pdfs')
@@ -132,6 +136,8 @@ export const useTrialExams = () => {
             .from('exam-pdfs')
             .getPublicUrl(imagePath);
           coverImageUrl = imageUrlData.publicUrl;
+        } else {
+          console.error('Cover image upload error:', imageError);
         }
       }
 
@@ -140,7 +146,7 @@ export const useTrialExams = () => {
         .from('trial_exams')
         .insert({
           title: data.title,
-          description: data.description,
+          description: data.description || null,
           exam_date: data.exam_date,
           grade: data.grade,
           pdf_url: pdfUrlData.publicUrl,
@@ -148,14 +154,18 @@ export const useTrialExams = () => {
           created_by: user.id
         });
 
-      if (examError) throw examError;
+      if (examError) {
+        console.error('Exam insert error:', examError);
+        toast.error(`Deneme kaydedilirken hata: ${examError.message}`);
+        return { error: examError };
+      }
 
       toast.success('Deneme başarıyla oluşturuldu');
       fetchExams();
       return { error: null };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating exam:', error);
-      toast.error('Deneme oluşturulurken hata oluştu');
+      toast.error(`Deneme oluşturulurken hata: ${error?.message || 'Bilinmeyen hata'}`);
       return { error };
     }
   };
