@@ -105,9 +105,12 @@ export const useTrialExams = () => {
   }) => {
     if (!user) return { error: new Error('Not authenticated') };
 
+    const sanitize = (name: string) =>
+      name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
     try {
       // Upload PDF
-      const pdfPath = `${user.id}/${Date.now()}-${data.pdf_file.name}`;
+      const pdfPath = `${user.id}/${Date.now()}-${sanitize(data.pdf_file.name)}`;
       const { error: pdfError } = await supabase.storage
         .from('exam-pdfs')
         .upload(pdfPath, data.pdf_file);
@@ -126,7 +129,7 @@ export const useTrialExams = () => {
       
       // Upload cover image if provided
       if (data.cover_image) {
-        const imagePath = `${user.id}/${Date.now()}-${data.cover_image.name}`;
+        const imagePath = `${user.id}/${Date.now()}-${sanitize(data.cover_image.name)}`;
         const { error: imageError } = await supabase.storage
           .from('exam-pdfs')
           .upload(imagePath, data.cover_image);
