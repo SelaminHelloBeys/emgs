@@ -33,19 +33,12 @@ const roleColors: Record<'ogretmen' | 'ogrenci', string> = {
 };
 
 const schools = [
-  { id: 'gen-kurs', name: 'Gen Kurs Merkezi' },
   { id: 'ali-ihsan', name: 'Ali İhsan Hayırlıoğlu Ortaokulu' },
 ];
 
 const classes = [
-  '5-A', '5-B', '5-C',
-  '6-A', '6-B', '6-C',
-  '7-A', '7-B', '7-C',
-  '8-A', '8-B', '8-C',
-  '9-A', '9-B', '9-C',
-  '10-A', '10-B', '10-C',
-  '11-A', '11-B', '11-C',
-  '12-A', '12-B', '12-C',
+  '8-A', '8-B', '8-C', '8-D', '8-E',
+  '8-F', '8-G', '8-H', '8-I', '8-J',
 ];
 
 type AuthStep = 'credentials' | 'role' | 'school' | 'class' | 'teacher-verify';
@@ -230,7 +223,7 @@ export const AuthPage: React.FC = () => {
                 <span className="text-primary-foreground font-bold text-3xl">E</span>
               </div>
               <h1 className="text-4xl font-bold mb-2">EMG</h1>
-              <p className="text-xl text-muted-foreground">Education Material Gateway</p>
+              <p className="text-xl text-muted-foreground">Eğitim Materyal Geçidi</p>
             </div>
 
             {/* Auth Card */}
