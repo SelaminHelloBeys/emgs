@@ -205,6 +205,7 @@ export type Database = {
           id: string
           setting_key: string
           setting_value: boolean
+          text_value: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -213,6 +214,7 @@ export type Database = {
           id?: string
           setting_key: string
           setting_value?: boolean
+          text_value?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -221,6 +223,7 @@ export type Database = {
           id?: string
           setting_key?: string
           setting_value?: boolean
+          text_value?: string | null
           updated_at?: string
           updated_by?: string | null
         }

@@ -6,8 +6,10 @@ import { TopNav } from './TopNav';
 import { MobileNav } from './MobileNav';
 import { DevelopmentModeScreen } from '@/components/DevelopmentModeScreen';
 import { MaintenanceModeScreen } from '@/components/MaintenanceModeScreen';
+import { DangerModeScreen } from '@/components/DangerModeScreen';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 interface PlatformModes {
   development_mode: boolean;
@@ -25,16 +27,25 @@ export const AppLayout: React.FC = () => {
     maintenance_mode: false,
     danger_detection_mode: false,
   });
+  const [dangerPassword, setDangerPassword] = useState<string | null>(null);
+  const [dangerBypassed, setDangerBypassed] = useState(false);
   const [isLoadingModes, setIsLoadingModes] = useState(true);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
   const isAdmin = role === 'yonetici' || role === 'admin';
+
+  // Fake loading delay
+  useEffect(() => {
+    const timer = setTimeout(() => setShowLoadingScreen(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Fetch platform modes from database
   useEffect(() => {
     const fetchModes = async () => {
       const { data, error } = await supabase
         .from('platform_settings')
-        .select('setting_key, setting_value');
+        .select('setting_key, setting_value, text_value');
 
       if (!error && data) {
         const modes: PlatformModes = {
@@ -42,19 +53,23 @@ export const AppLayout: React.FC = () => {
           maintenance_mode: false,
           danger_detection_mode: false,
         };
-        data.forEach((setting) => {
+        let pwd: string | null = null;
+        data.forEach((setting: any) => {
           if (setting.setting_key in modes) {
             modes[setting.setting_key as keyof PlatformModes] = setting.setting_value;
           }
+          if (setting.setting_key === 'danger_detection_mode' && setting.text_value) {
+            pwd = setting.text_value;
+          }
         });
         setPlatformModes(modes);
+        setDangerPassword(pwd);
       }
       setIsLoadingModes(false);
     };
 
     fetchModes();
 
-    // Subscribe to realtime changes
     const channel = supabase
       .channel('platform_settings_changes')
       .on(
@@ -77,8 +92,16 @@ export const AppLayout: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated || !user || isLoadingModes) {
-    return null;
+  if (!isAuthenticated || !user || isLoadingModes || showLoadingScreen) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-primary shadow-lg flex items-center justify-center">
+          <span className="text-primary-foreground font-bold text-2xl">E</span>
+        </div>
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">EMG yükleniyor...</p>
+      </div>
+    );
   }
 
   // Admins and yonetici are never affected by any platform modes
@@ -89,6 +112,15 @@ export const AppLayout: React.FC = () => {
 
     if (platformModes.development_mode) {
       return <DevelopmentModeScreen />;
+    }
+
+    if (platformModes.danger_detection_mode && dangerPassword && !dangerBypassed) {
+      return (
+        <DangerModeScreen
+          correctPassword={dangerPassword}
+          onPasswordCorrect={() => setDangerBypassed(true)}
+        />
+      );
     }
   }
 
