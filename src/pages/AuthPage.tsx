@@ -41,7 +41,7 @@ const classes = [
   '8-F', '8-G', '8-H', '8-I', '8-J',
 ];
 
-type AuthStep = 'credentials' | 'role' | 'school' | 'class' | 'teacher-verify';
+type AuthStep = 'credentials' | 'role' | 'school' | 'class' | 'teacher-verify' | 'email-sent';
 
 export const AuthPage: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -202,8 +202,8 @@ export const AuthPage: React.FC = () => {
       return;
     }
 
-    toast.success('Hesap başarıyla oluşturuldu!');
-    navigate('/dashboard');
+    // Show email verification screen
+    setStep('email-sent');
   };
 
   const roles: ('ogretmen' | 'ogrenci')[] = ['ogrenci', 'ogretmen'];
@@ -627,6 +627,45 @@ export const AuthPage: React.FC = () => {
                 )}
               </Button>
             </div>
+          </div>
+        )}
+        {step === 'email-sent' && (
+          <div className="animate-fade-in text-center">
+            <div className="mb-8">
+                <div className="w-20 h-20 rounded-3xl bg-primary/10 mx-auto flex items-center justify-center mb-6">
+                <Mail className="w-10 h-10 text-primary" />
+              </div>
+              <h2 className="text-3xl font-bold mb-2">E-postanızı Kontrol Edin</h2>
+              <p className="text-muted-foreground max-w-sm mx-auto">
+                <span className="font-medium text-foreground">{email}</span> adresine bir doğrulama bağlantısı gönderdik. Hesabınızı aktifleştirmek için e-postanızdaki bağlantıya tıklayın.
+              </p>
+            </div>
+
+            <Card variant="elevated" className="max-w-md mx-auto p-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-muted text-sm text-muted-foreground">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <p>E-posta gelmedi mi? Spam/gereksiz klasörünüzü kontrol edin.</p>
+                </div>
+                <Button
+                  variant="apple"
+                  size="xl"
+                  className="w-full"
+                  onClick={() => {
+                    setMode('login');
+                    setStep('credentials');
+                    setEmail('');
+                    setPassword('');
+                    setName('');
+                    setSelectedRole(null);
+                    setSelectedSchool(null);
+                    setSelectedClass(null);
+                  }}
+                >
+                  Giriş Sayfasına Dön
+                </Button>
+              </div>
+            </Card>
           </div>
         )}
       </div>
