@@ -88,12 +88,16 @@ export const AuthPage: React.FC = () => {
 
     setIsLoading(true);
     const { error } = await signIn(email, password);
-    setIsLoading(false);
 
     if (error) {
+      setIsLoading(false);
       toast.error(error.message || 'Giriş yapılırken hata oluştu');
       return;
     }
+
+    // Fake loading delay for UX
+    await new Promise(r => setTimeout(r, 1200));
+    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {

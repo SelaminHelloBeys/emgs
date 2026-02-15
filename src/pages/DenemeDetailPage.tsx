@@ -93,8 +93,20 @@ export const DenemeDetailPage: React.FC = () => {
           "lg:w-[30%] space-y-4",
           !showMobileData && "hidden lg:block"
         )}>
-          {hasData ? (
+      {hasData ? (
             <>
+              {/* LGS Score */}
+              <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <p className="text-5xl font-bold text-primary">
+                      {((participation.net_score / 90) * 500).toFixed(2)}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">LGS Puanı (500 üzerinden)</p>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Score Summary */}
               <Card>
                 <CardHeader className="pb-3">
@@ -115,21 +127,15 @@ export const DenemeDetailPage: React.FC = () => {
                       <p className="text-xl font-bold text-red-600">{participation.wrong_count}</p>
                       <p className="text-xs text-muted-foreground">Yanlış</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-gray-500/10">
-                      <Minus className="w-5 h-5 text-gray-500 mx-auto mb-1" />
-                      <p className="text-xl font-bold text-gray-600">{participation.blank_count}</p>
+                    <div className="p-3 rounded-lg bg-muted">
+                      <Minus className="w-5 h-5 text-muted-foreground mx-auto mb-1" />
+                      <p className="text-xl font-bold">{participation.blank_count}</p>
                       <p className="text-xs text-muted-foreground">Boş</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Net Score */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-primary">{participation.net_score.toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground mt-1">Net Puan</p>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 mt-2">
+                    <span className="text-sm font-medium">Toplam Net</span>
+                    <span className="text-lg font-bold text-primary">{participation.net_score.toFixed(2)}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -149,7 +155,7 @@ export const DenemeDetailPage: React.FC = () => {
                         <Users className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">Şube Sıralaması</span>
                       </div>
-                      <span className="font-bold">{participation.class_rank}.</span>
+                      <span className="font-bold text-primary">{participation.class_rank}.</span>
                     </div>
                   )}
                   {participation.general_rank && (
@@ -158,7 +164,7 @@ export const DenemeDetailPage: React.FC = () => {
                         <Trophy className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">Genel Sıralama</span>
                       </div>
-                      <span className="font-bold">{participation.general_rank}.</span>
+                      <span className="font-bold text-primary">{participation.general_rank}.</span>
                     </div>
                   )}
                   {!participation.class_rank && !participation.general_rank && (

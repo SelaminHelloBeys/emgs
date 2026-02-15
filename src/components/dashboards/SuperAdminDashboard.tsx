@@ -9,8 +9,6 @@ import {
   Video,
   FileText,
   Target,
-  Settings,
-  Database,
   Loader2,
 } from 'lucide-react';
 
@@ -77,16 +75,6 @@ export const SuperAdminDashboard: React.FC = () => {
           <p className="text-muted-foreground">
             EMG Sistem Yöneticisi Paneli
           </p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Settings className="w-4 h-4" />
-            Sistem Ayarları
-          </Button>
-          <Button variant="apple" className="gap-2">
-            <Database className="w-4 h-4" />
-            DNS Ayarları
-          </Button>
         </div>
       </div>
 

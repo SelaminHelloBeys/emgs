@@ -18,39 +18,35 @@ export const BadgeNotification: React.FC<BadgeNotificationProps> = ({ children }
   const [showDialog, setShowDialog] = useState(false);
   const [newBadge, setNewBadge] = useState<typeof userBadges[0] | null>(null);
   const initialLoadDone = useRef(false);
-  const [seenBadgeIds, setSeenBadgeIds] = useState<Set<string>>(() => {
+  const seenBadgeIdsRef = useRef<Set<string>>(new Set<string>());
+  
+  // Initialize seen badges from localStorage on mount
+  useEffect(() => {
     const stored = localStorage.getItem('seen_badge_ids');
-    return stored ? new Set(JSON.parse(stored)) : new Set();
-  });
+    if (stored) {
+      seenBadgeIdsRef.current = new Set(JSON.parse(stored));
+    }
+  }, []);
 
   useEffect(() => {
     if (userBadges.length === 0) return;
 
-    // On first load, mark all existing badges as seen (no popup)
+    const seenIds = seenBadgeIdsRef.current instanceof Set 
+      ? seenBadgeIdsRef.current 
+      : new Set<string>();
+
     if (!initialLoadDone.current) {
       initialLoadDone.current = true;
-      const allIds = new Set(userBadges.map(ub => ub.badge_id));
-      const storedIds = new Set(seenBadgeIds);
-      // Only show popup for badges that were never in localStorage
-      const unseenBadge = userBadges.find(ub => !storedIds.has(ub.badge_id));
       
-      if (storedIds.size === 0) {
-        // First time ever - mark all as seen, no popup
-        setSeenBadgeIds(allIds);
-        localStorage.setItem('seen_badge_ids', JSON.stringify([...allIds]));
-        return;
-      }
-
-      if (unseenBadge) {
-        setNewBadge(unseenBadge);
-        setShowDialog(true);
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      }
+      // Always mark all current badges as seen on first load (prevents re-popup on login)
+      const allIds = new Set(userBadges.map(ub => ub.badge_id));
+      seenBadgeIdsRef.current = allIds;
+      localStorage.setItem('seen_badge_ids', JSON.stringify([...allIds]));
       return;
     }
 
-    // After initial load, check for newly earned badges
-    const unseenBadge = userBadges.find(ub => !seenBadgeIds.has(ub.badge_id));
+    // After initial load, only show popup for truly NEW badges earned during this session
+    const unseenBadge = userBadges.find(ub => !seenBadgeIdsRef.current.has(ub.badge_id));
     if (unseenBadge) {
       setNewBadge(unseenBadge);
       setShowDialog(true);
@@ -60,10 +56,8 @@ export const BadgeNotification: React.FC<BadgeNotificationProps> = ({ children }
 
   const handleClose = () => {
     if (newBadge) {
-      const updatedSeen = new Set(seenBadgeIds);
-      updatedSeen.add(newBadge.badge_id);
-      setSeenBadgeIds(updatedSeen);
-      localStorage.setItem('seen_badge_ids', JSON.stringify([...updatedSeen]));
+      seenBadgeIdsRef.current.add(newBadge.badge_id);
+      localStorage.setItem('seen_badge_ids', JSON.stringify([...seenBadgeIdsRef.current]));
     }
     setShowDialog(false);
     setNewBadge(null);
