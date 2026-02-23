@@ -199,6 +199,36 @@ export type Database = {
         }
         Relationships: []
       }
+      page_maintenance: {
+        Row: {
+          id: string
+          is_active: boolean
+          message: string | null
+          page_name: string
+          page_route: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          page_name: string
+          page_route: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          page_name?: string
+          page_route?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           description: string | null

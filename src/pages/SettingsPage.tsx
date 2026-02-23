@@ -51,6 +51,7 @@ import { ContentManagementPanel } from '@/components/admin/ContentManagementPane
 import { NotificationManagementPanel } from '@/components/admin/NotificationManagementPanel';
 import { PlatformModesPanel } from '@/components/admin/PlatformModesPanel';
 import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPanel';
+import { PageMaintenancePanel } from '@/components/admin/PageMaintenancePanel';
 
 type Language = 'tr' | 'en' | 'de';
 
@@ -403,8 +404,9 @@ export const SettingsPage: React.FC = () => {
                 <NotificationManagementPanel />
               </TabsContent>
 
-              <TabsContent value="platform" className="mt-6">
+              <TabsContent value="platform" className="mt-6 space-y-6">
                 <PlatformModesPanel />
+                <PageMaintenancePanel />
               </TabsContent>
 
               <TabsContent value="exams" className="mt-6">

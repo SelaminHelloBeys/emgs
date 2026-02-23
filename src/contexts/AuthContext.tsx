@@ -135,7 +135,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         emailRedirectTo: redirectUrl,
         data: {
           name: name || email.split('@')[0],
-          requested_role: selectedRole // Store requested role in metadata for admin approval
+          requested_role: selectedRole,
+          school_name: schoolName || null,
+          class: className || null,
         }
       }
     });
@@ -144,26 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error };
     }
 
-    // Profile is auto-created by trigger, just update with additional info
-    if (data.user) {
-      // Wait a moment for trigger to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Update profile with name, school, and class
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ 
-          name: name || email.split('@')[0],
-          school_name: schoolName,
-          class: className
-        })
-        .eq('user_id', data.user.id);
-      
-      if (profileError) {
-        console.error('Error updating profile:', profileError);
-      }
-    }
-
+    // Profile is auto-created by database trigger using metadata
+    // No need to update profile here - trigger reads from raw_user_meta_data
     return { error: null };
   };
 

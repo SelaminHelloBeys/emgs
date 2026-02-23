@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
@@ -7,8 +7,10 @@ import { MobileNav } from './MobileNav';
 import { DevelopmentModeScreen } from '@/components/DevelopmentModeScreen';
 import { MaintenanceModeScreen } from '@/components/MaintenanceModeScreen';
 import { DangerModeScreen } from '@/components/DangerModeScreen';
+import { PageMaintenanceScreen } from '@/components/PageMaintenanceScreen';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMaintenance } from '@/hooks/usePageMaintenance';
 import { Loader2 } from 'lucide-react';
 
 interface PlatformModes {
@@ -20,6 +22,8 @@ interface PlatformModes {
 export const AppLayout: React.FC = () => {
   const { user, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isPageInMaintenance } = usePageMaintenance();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [platformModes, setPlatformModes] = useState<PlatformModes>({
@@ -124,6 +128,9 @@ export const AppLayout: React.FC = () => {
     }
   }
 
+  // Check per-page maintenance (admins bypass)
+  const maintenancePage = !isAdmin ? isPageInMaintenance(location.pathname) : undefined;
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav onMenuClick={() => setMobileNavOpen(true)} />
@@ -137,7 +144,14 @@ export const AppLayout: React.FC = () => {
           )}
         >
           <div className="max-w-7xl mx-auto animate-fade-in">
-            <Outlet />
+            {maintenancePage ? (
+              <PageMaintenanceScreen 
+                pageName={maintenancePage.page_name} 
+                message={maintenancePage.message} 
+              />
+            ) : (
+              <Outlet />
+            )}
           </div>
         </main>
       </div>
