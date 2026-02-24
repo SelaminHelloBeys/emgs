@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { roleLabels } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -190,7 +191,9 @@ export const TopNav: React.FC<TopNavProps> = ({ onMenuClick }) => {
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {/* Theme Toggle */}
+          <ThemeToggle />
           {/* Notifications */}
           <Popover>
             <PopoverTrigger asChild>
