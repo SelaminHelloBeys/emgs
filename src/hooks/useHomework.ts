@@ -35,19 +35,30 @@ export const useHomework = () => {
       return;
     }
 
-    // Fetch homework
+    // Fetch homework (no join - FK points to auth.users not profiles)
     const { data: homeworkData, error } = await supabase
       .from('homework_assignments')
-      .select(`
-        *,
-        profiles:created_by(name)
-      `)
+      .select('*')
       .order('due_date', { ascending: true });
 
     if (error) {
       console.error('Error fetching homework:', error);
       setIsLoading(false);
       return;
+    }
+
+
+    // Fetch creator profiles separately
+    const creatorIds = [...new Set((homeworkData || []).map(hw => hw.created_by))];
+    const profilesMap = new Map<string, string>();
+    
+    if (creatorIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, name')
+        .in('user_id', creatorIds);
+      
+      profilesData?.forEach(p => profilesMap.set(p.user_id, p.name));
     }
 
     // Fetch user submissions
@@ -60,14 +71,13 @@ export const useHomework = () => {
 
     const formattedHomework = (homeworkData || [])
       .filter(hw => {
-        // Filter by grade/class if student
         if (profile?.grade && hw.grade !== profile.grade) return false;
         if (hw.class_section && profile?.class && hw.class_section !== profile.class) return false;
         return true;
       })
       .map(hw => ({
         ...hw,
-        creator_name: (hw.profiles as any)?.name || 'Bilinmeyen',
+        creator_name: profilesMap.get(hw.created_by) || 'Bilinmeyen',
         submission: submissionsMap.get(hw.id)
       }));
 

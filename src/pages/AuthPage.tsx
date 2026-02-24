@@ -5,6 +5,7 @@ import { roleLabels, roleDescriptions } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   BookOpen, 
   Backpack,
@@ -231,6 +232,10 @@ export const AuthPage: React.FC = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
       <AuthBackground />
       
+      {/* Theme toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-lg relative z-10">
         {/* Step indicator for signup */}
         {mode === 'signup' && step !== 'credentials' && step !== 'email-sent' && (

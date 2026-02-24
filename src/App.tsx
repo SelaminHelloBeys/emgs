@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BadgeNotification } from "@/components/BadgeNotification";
 
@@ -31,47 +32,49 @@ import { AICoach } from "./components/AICoach";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <BadgeNotification>
-            <AICoach />
-            <Routes>
-              {/* Auth */}
-              <Route path="/auth" element={<AuthPage />} />
-              
-              {/* App Layout */}
-              <Route element={<AppLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/shorts" element={<ShortsPage />} />
-                <Route path="/konu-anlatimi" element={<KonuAnlatimiPage />} />
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <BadgeNotification>
+              <AICoach />
+              <Routes>
+                {/* Auth */}
+                <Route path="/auth" element={<AuthPage />} />
                 
-                <Route path="/quizzes" element={<QuizzesPage />} />
-                <Route path="/homework" element={<HomeworkPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/announcements" element={<AnnouncementsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/smartboard" element={<SmartboardPage />} />
-                <Route path="/upload" element={<TeacherContentUploadPage />} />
-                <Route path="/denemeler" element={<DenemelerPage />} />
-                <Route path="/denemeler/:id" element={<DenemeDetailPage />} />
-                <Route path="/rozetler" element={<BadgesPage />} />
-              </Route>
-              
-              {/* Redirects */}
-              <Route path="/" element={<Navigate to="/auth" replace />} />
-              
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BadgeNotification>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+                {/* App Layout */}
+                <Route element={<AppLayout />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/shorts" element={<ShortsPage />} />
+                  <Route path="/konu-anlatimi" element={<KonuAnlatimiPage />} />
+                  
+                  <Route path="/quizzes" element={<QuizzesPage />} />
+                  <Route path="/homework" element={<HomeworkPage />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/announcements" element={<AnnouncementsPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/smartboard" element={<SmartboardPage />} />
+                  <Route path="/upload" element={<TeacherContentUploadPage />} />
+                  <Route path="/denemeler" element={<DenemelerPage />} />
+                  <Route path="/denemeler/:id" element={<DenemeDetailPage />} />
+                  <Route path="/rozetler" element={<BadgesPage />} />
+                </Route>
+                
+                {/* Redirects */}
+                <Route path="/" element={<Navigate to="/auth" replace />} />
+                
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BadgeNotification>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
