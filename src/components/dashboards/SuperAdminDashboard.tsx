@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { PlatformModesPanel } from '@/components/admin/PlatformModesPanel';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
   Users,
   Video,
   FileText,
   Target,
   Loader2,
+  Shield,
+  ChevronRight,
+  Activity,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PlatformStats {
   totalUsers: number;
@@ -21,13 +25,13 @@ interface PlatformStats {
 
 export const SuperAdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch real counts from database
         const [profilesRes, lessonsRes, examsRes, homeworkRes] = await Promise.all([
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
           supabase.from('lessons').select('id', { count: 'exact', head: true }),
@@ -47,15 +51,14 @@ export const SuperAdminDashboard: React.FC = () => {
         setIsLoading(false);
       }
     };
-
     fetchStats();
   }, []);
 
   const platformStats = [
-    { label: 'Toplam Kullanıcı', value: stats?.totalUsers || 0, icon: Users, color: 'text-primary' },
-    { label: 'Video İçerik', value: stats?.totalLessons || 0, icon: Video, color: 'text-apple-green' },
-    { label: 'Sınav', value: stats?.totalExams || 0, icon: Target, color: 'text-apple-orange' },
-    { label: 'Ödev', value: stats?.totalHomework || 0, icon: FileText, color: 'text-apple-purple' },
+    { label: 'Toplam Kullanıcı', value: stats?.totalUsers || 0, icon: Users, color: 'text-primary', bg: 'bg-primary/10 dark:bg-primary/20' },
+    { label: 'Video İçerik', value: stats?.totalLessons || 0, icon: Video, color: 'text-apple-green', bg: 'bg-green-500/10 dark:bg-green-500/20' },
+    { label: 'Sınav', value: stats?.totalExams || 0, icon: Target, color: 'text-apple-orange', bg: 'bg-orange-500/10 dark:bg-orange-500/20' },
+    { label: 'Ödev', value: stats?.totalHomework || 0, icon: FileText, color: 'text-apple-purple', bg: 'bg-purple-500/10 dark:bg-purple-500/20' },
   ];
 
   if (isLoading) {
@@ -68,25 +71,26 @@ export const SuperAdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-start justify-between animate-slide-up">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Platform Yönetimi</h1>
-          <p className="text-muted-foreground">
-            EMG Sistem Yöneticisi Paneli
-          </p>
-        </div>
+      {/* Header with animation */}
+      <div className="animate-fade-in">
+        <h1 className="text-3xl font-bold mb-2">Platform Yönetimi</h1>
+        <p className="text-muted-foreground">EMG Sistem Yöneticisi Paneli</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
-        {platformStats.map((stat) => {
+      {/* Stats Grid with staggered animation */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {platformStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} variant="stat" className="p-5">
+            <Card
+              key={stat.label}
+              variant="stat"
+              className="p-5 animate-fade-in hover:scale-[1.02] transition-transform duration-300"
+              style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
+            >
               <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                  <Icon className={`w-5 h-5 ${stat.color}`} />
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", stat.bg)}>
+                  <Icon className={cn("w-5 h-5", stat.color)} />
                 </div>
               </div>
               <div className="text-2xl font-bold mb-1">{stat.value}</div>
@@ -96,31 +100,58 @@ export const SuperAdminDashboard: React.FC = () => {
         })}
       </div>
 
-      {/* Platform Info */}
-      <Card variant="elevated" className="p-6">
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+        <Card
+          className="p-6 cursor-pointer group border-0 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/5 hover:shadow-xl transition-all duration-500"
+          onClick={() => navigate('/moderation')}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/20 dark:bg-primary/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+              <Shield className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">Moderasyon Paneli</h3>
+              <p className="text-sm text-muted-foreground">Platformu yönet ve kontrol et</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+          </div>
+        </Card>
+
+        <Card
+          className="p-6 cursor-pointer group border-0 bg-gradient-to-br from-blue-500/10 to-blue-500/5 dark:from-blue-500/20 dark:to-blue-500/5 hover:shadow-xl transition-all duration-500"
+          onClick={() => navigate('/analytics')}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/20 dark:bg-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+              <Activity className="w-6 h-6 text-blue-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">Analitik</h3>
+              <p className="text-sm text-muted-foreground">Platform istatistiklerini görüntüle</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Platform Status */}
+      <Card variant="elevated" className="p-6 animate-fade-in" style={{ animationDelay: '500ms', animationFillMode: 'both' }}>
         <h3 className="font-semibold mb-4">Platform Durumu</h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="text-center p-4 rounded-xl bg-surface-secondary">
-            <div className="text-2xl font-bold text-primary mb-1">{stats?.totalUsers || 0}</div>
-            <div className="text-sm text-muted-foreground">Kayıtlı Kullanıcı</div>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-surface-secondary">
-            <div className="text-2xl font-bold text-apple-green mb-1">{stats?.totalLessons || 0}</div>
-            <div className="text-sm text-muted-foreground">Video Ders</div>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-surface-secondary">
-            <div className="text-2xl font-bold text-apple-orange mb-1">{stats?.totalExams || 0}</div>
-            <div className="text-sm text-muted-foreground">Sınav</div>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-surface-secondary">
-            <div className="text-2xl font-bold text-apple-purple mb-1">{stats?.totalHomework || 0}</div>
-            <div className="text-sm text-muted-foreground">Ödev</div>
-          </div>
+          {[
+            { label: 'Kayıtlı Kullanıcı', value: stats?.totalUsers || 0, color: 'text-primary' },
+            { label: 'Video Ders', value: stats?.totalLessons || 0, color: 'text-apple-green' },
+            { label: 'Sınav', value: stats?.totalExams || 0, color: 'text-apple-orange' },
+            { label: 'Ödev', value: stats?.totalHomework || 0, color: 'text-apple-purple' },
+          ].map((item) => (
+            <div key={item.label} className="text-center p-4 rounded-xl bg-surface-secondary hover:scale-105 transition-transform duration-300">
+              <div className={cn("text-2xl font-bold mb-1", item.color)}>{item.value}</div>
+              <div className="text-sm text-muted-foreground">{item.label}</div>
+            </div>
+          ))}
         </div>
       </Card>
-
-      {/* Platform Modes */}
-      <PlatformModesPanel />
     </div>
   );
 };
