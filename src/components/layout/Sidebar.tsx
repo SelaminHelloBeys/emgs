@@ -6,22 +6,16 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Home,
-  PlayCircle,
   Video,
-  FileText,
   HelpCircle,
   ClipboardList,
   BarChart3,
-  Users,
-  Building2,
   Settings,
   Upload,
-  BookOpen,
   Heart,
   Shield,
   GraduationCap,
   Megaphone,
-  Monitor,
   ChevronLeft,
   ChevronRight,
   PenTool,
@@ -42,44 +36,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  // Common
   { icon: Home, label: 'Ana Sayfa', href: '/dashboard', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
-  
-  // Content viewing - available to all but Shorts and Analitik only for admins
-  { icon: PlayCircle, label: 'Shorts', href: '/shorts', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   { icon: Video, label: 'Konu Anlatımı', href: '/konu-anlatimi', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: HelpCircle, label: 'Quizler', href: '/quizzes', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: ClipboardList, label: 'Ödevler', href: '/homework', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: PenTool, label: 'Denemeler', href: '/denemeler', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: Trophy, label: 'Rozetlerim', href: '/rozetler', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
-  
-  // Admin only - Content upload
   { icon: Upload, label: 'İçerik Yükle', href: '/upload', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
-  
-  // Teacher specific
-  { icon: BookOpen, label: 'Sınıflarım', href: '/my-classes', roles: ['ogretmen', 'yonetici', 'admin'] },
-  
-  // Counselor specific
   { icon: Heart, label: 'Öğrenci Takibi', href: '/student-tracking', roles: ['rehber'] },
-  
-  // Admin specific
-  { icon: Users, label: 'Kullanıcılar', href: '/users', roles: ['admin', 'yonetici'] },
-  { icon: Building2, label: 'Okullar', href: '/schools', roles: ['yonetici'] },
   { icon: Shield, label: 'Moderasyon', href: '/moderation', roles: ['yonetici', 'admin'] },
-  
-  // Principal specific
   { icon: GraduationCap, label: 'Okul Yönetimi', href: '/school-management', roles: ['mudur', 'mudur_yardimcisi'] },
-  
-  // Analytics - Admin only
   { icon: BarChart3, label: 'Analitik', href: '/analytics', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
-  
-  // Announcements
   { icon: Megaphone, label: 'Duyurular', href: '/announcements', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
-  
-  // Smartboard - Admin only
-  { icon: Monitor, label: 'Akıllı Tahta', href: '/smartboard', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
-  
-  // Settings
   { icon: Settings, label: 'Ayarlar', href: '/settings', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
 ];
 
@@ -88,9 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
   const location = useLocation();
 
   const filteredItems = navItems.filter(item => {
-    // Check if user has the required role
     if (!role || !item.roles.includes(role)) return false;
-    // If item is admin only, check if user is admin
     if (item.adminOnly && !isAdmin) return false;
     return true;
   });
@@ -103,26 +69,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
       )}
     >
       <div className="flex flex-col h-full p-4">
-        {/* Collapse button */}
         <Button
           variant="ghost"
           size="iconSm"
           onClick={() => onCollapse(!collapsed)}
           className="absolute -right-3 top-6 bg-background border border-border/50 shadow-apple-sm rounded-full"
         >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
 
-        {/* Navigation */}
         <nav className="flex-1 space-y-1 mt-4 overflow-y-auto scrollbar-hide">
           {filteredItems.map((item) => {
             const isActive = location.pathname === item.href;
             const Icon = item.icon;
-
             return (
               <NavLink
                 key={item.href}
@@ -141,7 +100,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
           })}
         </nav>
 
-        {/* School info and Legal */}
         <div className="pt-4 border-t border-border/50">
           {!collapsed && profile?.school_name && (
             <div className="px-3 py-2">

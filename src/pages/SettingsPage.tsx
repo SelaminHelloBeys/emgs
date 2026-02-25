@@ -26,10 +26,7 @@ import {
   Camera,
   Loader2,
   Languages,
-  Users,
   Settings,
-  Video,
-  FileText,
   Sun,
   Moon,
   Monitor,
@@ -51,12 +48,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { UserManagementPanel } from '@/components/admin/UserManagementPanel';
-import { ContentManagementPanel } from '@/components/admin/ContentManagementPanel';
-import { NotificationManagementPanel } from '@/components/admin/NotificationManagementPanel';
-import { PlatformModesPanel } from '@/components/admin/PlatformModesPanel';
-import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPanel';
-import { PageMaintenancePanel } from '@/components/admin/PageMaintenancePanel';
+// Admin panels moved to ModerationPage
 
 type Language = 'tr' | 'en' | 'de';
 
@@ -205,7 +197,7 @@ export const SettingsPage: React.FC = () => {
     toast.success(`Dil ${LANGUAGES.find(l => l.value === value)?.label} olarak değiştirildi`);
   };
 
-  const isAdminRole = role && ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'].includes(role);
+  const isAdminRole = false; // Admin controls moved to Moderation page
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -435,56 +427,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         </TabsContent>
 
-        {/* Admin Tab */}
-        {isAdminRole && (
-          <TabsContent value="admin" className="space-y-6">
-            <Tabs defaultValue="users">
-              <TabsList>
-                <TabsTrigger value="users" className="gap-2">
-                  <Users className="w-4 h-4" />
-                  Kullanıcılar
-                </TabsTrigger>
-                <TabsTrigger value="content" className="gap-2">
-                  <Video className="w-4 h-4" />
-                  İçerikler
-                </TabsTrigger>
-                <TabsTrigger value="notifications" className="gap-2">
-                  <Bell className="w-4 h-4" />
-                  Bildirimler
-                </TabsTrigger>
-                <TabsTrigger value="platform" className="gap-2">
-                  <Settings className="w-4 h-4" />
-                  Platform
-                </TabsTrigger>
-                <TabsTrigger value="exams" className="gap-2">
-                  <FileText className="w-4 h-4" />
-                  Denemeler
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="users" className="mt-6">
-                <UserManagementPanel />
-              </TabsContent>
-
-              <TabsContent value="content" className="mt-6">
-                <ContentManagementPanel />
-              </TabsContent>
-
-              <TabsContent value="notifications" className="mt-6">
-                <NotificationManagementPanel />
-              </TabsContent>
-
-              <TabsContent value="platform" className="mt-6 space-y-6">
-                <PlatformModesPanel />
-                <PageMaintenancePanel />
-              </TabsContent>
-
-              <TabsContent value="exams" className="mt-6">
-                <ExamParticipationPanel />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-        )}
+        {/* Admin Tab - Moved to Moderation Page */}
       </Tabs>
 
       {/* Password Change Dialog */}

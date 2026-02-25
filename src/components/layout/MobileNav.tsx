@@ -3,29 +3,21 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { LegalDisclaimerMini } from '@/components/LegalDisclaimer';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import {
   Home,
-  PlayCircle,
   Video,
   HelpCircle,
   ClipboardList,
   BarChart3,
-  Users,
-  Building2,
   Settings,
   Upload,
-  BookOpen,
   Heart,
   Shield,
   GraduationCap,
   Megaphone,
-  Monitor,
   PenTool,
   Trophy,
-  Menu,
-  X,
 } from 'lucide-react';
 
 interface NavItem {
@@ -38,22 +30,17 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: Home, label: 'Ana Sayfa', href: '/dashboard', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
-  { icon: PlayCircle, label: 'Shorts', href: '/shorts', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   { icon: Video, label: 'Konu Anlatımı', href: '/konu-anlatimi', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: HelpCircle, label: 'Quizler', href: '/quizzes', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: ClipboardList, label: 'Ödevler', href: '/homework', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: PenTool, label: 'Denemeler', href: '/denemeler', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: Trophy, label: 'Rozetlerim', href: '/rozetler', roles: ['ogrenci', 'ogretmen', 'yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber'] },
   { icon: Upload, label: 'İçerik Yükle', href: '/upload', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
-  { icon: BookOpen, label: 'Sınıflarım', href: '/my-classes', roles: ['ogretmen', 'yonetici', 'admin'] },
   { icon: Heart, label: 'Öğrenci Takibi', href: '/student-tracking', roles: ['rehber'] },
-  { icon: Users, label: 'Kullanıcılar', href: '/users', roles: ['admin', 'yonetici'] },
-  { icon: Building2, label: 'Okullar', href: '/schools', roles: ['yonetici'] },
   { icon: Shield, label: 'Moderasyon', href: '/moderation', roles: ['yonetici', 'admin'] },
   { icon: GraduationCap, label: 'Okul Yönetimi', href: '/school-management', roles: ['mudur', 'mudur_yardimcisi'] },
   { icon: BarChart3, label: 'Analitik', href: '/analytics', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   { icon: Megaphone, label: 'Duyurular', href: '/announcements', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
-  { icon: Monitor, label: 'Akıllı Tahta', href: '/smartboard', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   { icon: Settings, label: 'Ayarlar', href: '/settings', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'] },
 ];
 
@@ -89,7 +76,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ open, onOpenChange }) => {
             {filteredItems.map((item) => {
               const isActive = location.pathname === item.href;
               const Icon = item.icon;
-
               return (
                 <NavLink
                   key={item.href}

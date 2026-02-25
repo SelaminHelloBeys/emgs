@@ -10,19 +10,17 @@ import { BadgeNotification } from "@/components/BadgeNotification";
 // Pages
 import { AuthPage } from "./pages/AuthPage";
 import { Dashboard } from "./pages/Dashboard";
-import { ShortsPage } from "./pages/ShortsPage";
 import { KonuAnlatimiPage } from "./pages/KonuAnlatimiPage";
 import { QuizzesPage } from "./pages/QuizzesPage";
-
 import { HomeworkPage } from "./pages/HomeworkPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { AnnouncementsPage } from "./pages/AnnouncementsPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { SmartboardPage } from "./pages/SmartboardPage";
 import { TeacherContentUploadPage } from "./pages/TeacherContentUploadPage";
 import { DenemelerPage } from "./pages/DenemelerPage";
 import { DenemeDetailPage } from "./pages/DenemeDetailPage";
 import { BadgesPage } from "./pages/BadgesPage";
+import { ModerationPage } from "./pages/ModerationPage";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -42,31 +40,22 @@ const App = () => (
             <BadgeNotification>
               <AICoach />
               <Routes>
-                {/* Auth */}
                 <Route path="/auth" element={<AuthPage />} />
-                
-                {/* App Layout */}
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/shorts" element={<ShortsPage />} />
                   <Route path="/konu-anlatimi" element={<KonuAnlatimiPage />} />
-                  
                   <Route path="/quizzes" element={<QuizzesPage />} />
                   <Route path="/homework" element={<HomeworkPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
                   <Route path="/announcements" element={<AnnouncementsPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/smartboard" element={<SmartboardPage />} />
                   <Route path="/upload" element={<TeacherContentUploadPage />} />
                   <Route path="/denemeler" element={<DenemelerPage />} />
                   <Route path="/denemeler/:id" element={<DenemeDetailPage />} />
                   <Route path="/rozetler" element={<BadgesPage />} />
+                  <Route path="/moderation" element={<ModerationPage />} />
                 </Route>
-                
-                {/* Redirects */}
                 <Route path="/" element={<Navigate to="/auth" replace />} />
-                
-                {/* 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BadgeNotification>

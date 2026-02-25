@@ -183,13 +183,18 @@ export const StudentDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
-        {statsData.map((stat) => {
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statsData.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} variant="stat" className="p-5">
+            <Card
+              key={stat.label}
+              variant="stat"
+              className="p-5 animate-fade-in hover:scale-[1.03] transition-transform duration-300"
+              style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
+            >
               <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-primary" />
                 </div>
               </div>
