@@ -74,7 +74,7 @@ export const HomeworkPage: React.FC = () => {
     if (!title || !subject || !grade || !dueDate) return;
     
     setIsSubmitting(true);
-    await createHomework(title, description, subject, grade, classSection || null, dueDate);
+    await createHomework(title, description, subject, grade, classSection === 'all' ? null : classSection || null, dueDate);
     setIsSubmitting(false);
     
     setTitle('');
@@ -185,7 +185,7 @@ export const HomeworkPage: React.FC = () => {
                         <SelectValue placeholder="Tümü" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tümü</SelectItem>
+                        <SelectItem value="all">Tümü</SelectItem>
                         {classSections.map(s => (
                           <SelectItem key={s} value={s}>{s}</SelectItem>
                         ))}
