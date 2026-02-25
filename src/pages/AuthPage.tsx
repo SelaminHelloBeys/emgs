@@ -19,6 +19,8 @@ import {
   User,
   Building2,
   GraduationCap,
+  Phone,
+  Apple,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -211,7 +213,14 @@ export const AuthPage: React.FC = () => {
     const { error } = await signUp(email, password, selectedRole as UserRole, name, selectedSchool, selectedClass);
     setIsLoading(false);
     if (error) { toast.error(error.message || 'Kayıt olurken hata oluştu'); return; }
-    setStep('email-sent');
+    toast.success('Kayıt başarılı! Giriş yapılıyor...');
+    // Auto-confirm enabled, sign in directly
+    const { error: signInError } = await signIn(email, password);
+    if (signInError) {
+      toast.error('Giriş yapılamadı, lütfen tekrar deneyin');
+      setStep('credentials');
+      setMode('login');
+    }
   };
 
   const roles: ('ogretmen' | 'ogrenci')[] = ['ogrenci', 'ogretmen'];
@@ -271,7 +280,7 @@ export const AuthPage: React.FC = () => {
               <Button
                 variant="outline"
                 size="xl"
-                className="w-full gap-3 mb-4 hover-lift border-border/50"
+                className="w-full gap-3 mb-3 hover-lift border-border/50"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
@@ -282,6 +291,34 @@ export const AuthPage: React.FC = () => {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 Google ile Devam Et
+              </Button>
+
+              {/* Apple - Coming Soon */}
+              <Button
+                variant="outline"
+                size="xl"
+                className="w-full gap-3 mb-3 border-border/50 opacity-60 cursor-not-allowed relative"
+                disabled
+              >
+                <Apple className="w-5 h-5" />
+                Apple ile Devam Et
+                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  Yakında
+                </span>
+              </Button>
+
+              {/* Phone - Coming Soon */}
+              <Button
+                variant="outline"
+                size="xl"
+                className="w-full gap-3 mb-3 border-border/50 opacity-60 cursor-not-allowed relative"
+                disabled
+              >
+                <Phone className="w-5 h-5" />
+                Telefon ile Devam Et
+                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                  Yakında
+                </span>
               </Button>
 
               <div className="relative my-6">

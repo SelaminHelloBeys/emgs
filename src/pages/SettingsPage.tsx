@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useTheme } from 'next-themes';
 import {
   User,
   Bell,
@@ -29,6 +30,10 @@ import {
   Settings,
   Video,
   FileText,
+  Sun,
+  Moon,
+  Monitor,
+  Palette,
 } from 'lucide-react';
 import { roleLabels } from '@/types/user';
 import { cn } from '@/lib/utils';
@@ -60,6 +65,55 @@ const LANGUAGES: { value: Language; label: string; flag: string }[] = [
   { value: 'en', label: 'English', flag: '🇬🇧' },
   { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
 ];
+
+const themeOptions = [
+  { value: 'light', label: 'Açık', icon: Sun, description: 'Aydınlık tema' },
+  { value: 'dark', label: 'Koyu', icon: Moon, description: 'Karanlık tema' },
+  { value: 'system', label: 'Sistem', icon: Monitor, description: 'Cihaz ayarını takip et' },
+];
+
+const ThemeSelector = () => {
+  const { theme, setTheme } = useTheme();
+  
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {themeOptions.map((opt) => {
+        const Icon = opt.icon;
+        const isActive = theme === opt.value;
+        return (
+          <Card
+            key={opt.value}
+            variant="interactive"
+            className={cn(
+              "p-4 cursor-pointer text-center transition-all duration-300",
+              isActive && "ring-2 ring-primary shadow-apple-glow border-primary/30"
+            )}
+            onClick={() => {
+              setTheme(opt.value);
+              toast.success(`Tema "${opt.label}" olarak değiştirildi`);
+            }}
+          >
+            <div className={cn(
+              "w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center transition-all",
+              isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            )}>
+              <Icon className="w-5 h-5" />
+            </div>
+            <p className="font-medium text-sm">{opt.label}</p>
+            <p className="text-xs text-muted-foreground mt-1">{opt.description}</p>
+            {isActive && (
+              <div className="mt-2 flex justify-center">
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="w-3 h-3 text-primary-foreground" />
+                </div>
+              </div>
+            )}
+          </Card>
+        );
+      })}
+    </div>
+  );
+};
 
 export const SettingsPage: React.FC = () => {
   const { user, profile, role, signOut, isAdmin } = useAuth();
@@ -337,32 +391,48 @@ export const SettingsPage: React.FC = () => {
 
         {/* Preferences Tab */}
         <TabsContent value="preferences" className="space-y-6">
-          <Card variant="default" className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <Languages className="w-5 h-5 text-muted-foreground" />
+          {/* Theme Selection */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground px-1 flex items-center gap-2">
+              <Palette className="w-4 h-4" />
+              Tema
+            </h3>
+            <ThemeSelector />
+          </div>
+
+          {/* Language */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground px-1 flex items-center gap-2">
+              <Languages className="w-4 h-4" />
+              Dil
+            </h3>
+            <Card variant="default" className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">Uygulama Dili</p>
+                  <p className="text-sm text-muted-foreground">Arayüz dilini seçin</p>
+                </div>
+                <Select value={language} onValueChange={(v) => handleLanguageChange(v as Language)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.value} value={lang.value}>
+                        <div className="flex items-center gap-2">
+                          <span>{lang.flag}</span>
+                          <span>{lang.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex-1">
-                <p className="font-medium">Dil</p>
-                <p className="text-sm text-muted-foreground">Uygulama dilini seçin</p>
-              </div>
-              <Select value={language} onValueChange={(v) => handleLanguageChange(v as Language)}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LANGUAGES.map((lang) => (
-                    <SelectItem key={lang.value} value={lang.value}>
-                      <div className="flex items-center gap-2">
-                        <span>{lang.flag}</span>
-                        <span>{lang.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Admin Tab */}
