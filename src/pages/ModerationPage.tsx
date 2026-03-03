@@ -9,6 +9,7 @@ import { ContentManagementPanel } from '@/components/admin/ContentManagementPane
 import { NotificationManagementPanel } from '@/components/admin/NotificationManagementPanel';
 import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPanel';
 import { supabase } from '@/integrations/supabase/client';
+import { useSearchParams } from 'react-router-dom';
 import {
   Shield,
   Users,
@@ -29,15 +30,23 @@ interface LogEntry {
   timestamp: string;
   type: 'info' | 'warning' | 'success' | 'error';
   message: string;
-  user?: string;
 }
+
+const TABS = ['overview', 'users', 'content', 'notifications', 'platform', 'exams'] as const;
+type TabValue = typeof TABS[number];
 
 export const ModerationPage: React.FC = () => {
   const { isAdmin } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
+  const currentTab = (searchParams.get('tab') as TabValue) || 'overview';
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
+
   useEffect(() => {
-    // Generate system logs from platform activity
     const generateLogs = async () => {
       const entries: LogEntry[] = [];
       
@@ -49,39 +58,16 @@ export const ModerationPage: React.FC = () => {
       ]);
 
       profilesRes.data?.forEach(p => {
-        entries.push({
-          id: `user-${p.created_at}`,
-          timestamp: p.created_at,
-          type: 'info',
-          message: `Yeni kullanıcı kaydı: ${p.name}`,
-        });
+        entries.push({ id: `user-${p.created_at}`, timestamp: p.created_at, type: 'info', message: `Yeni kullanıcı kaydı: ${p.name}` });
       });
-
       lessonsRes.data?.forEach(l => {
-        entries.push({
-          id: `lesson-${l.created_at}`,
-          timestamp: l.created_at,
-          type: 'success',
-          message: `Yeni video yüklendi: ${l.title}`,
-        });
+        entries.push({ id: `lesson-${l.created_at}`, timestamp: l.created_at, type: 'success', message: `Yeni video yüklendi: ${l.title}` });
       });
-
       homeworkRes.data?.forEach(h => {
-        entries.push({
-          id: `hw-${h.created_at}`,
-          timestamp: h.created_at,
-          type: 'info',
-          message: `Yeni ödev oluşturuldu: ${h.title}`,
-        });
+        entries.push({ id: `hw-${h.created_at}`, timestamp: h.created_at, type: 'info', message: `Yeni ödev oluşturuldu: ${h.title}` });
       });
-
       announcementsRes.data?.forEach(a => {
-        entries.push({
-          id: `ann-${a.created_at}`,
-          timestamp: a.created_at,
-          type: 'warning',
-          message: `Duyuru yayınlandı: ${a.title}`,
-        });
+        entries.push({ id: `ann-${a.created_at}`, timestamp: a.created_at, type: 'warning', message: `Duyuru yayınlandı: ${a.title}` });
       });
 
       entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -116,7 +102,7 @@ export const ModerationPage: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="flex flex-wrap gap-1 h-auto p-1">
           <TabsTrigger value="overview" className="gap-2">
             <Activity className="w-4 h-4" />
@@ -144,8 +130,7 @@ export const ModerationPage: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Activity Logs */}
+        <TabsContent value="overview" className="space-y-6 animate-fade-in">
           <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="w-5 h-5 text-primary" />
@@ -178,24 +163,24 @@ export const ModerationPage: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="users" className="mt-6">
+        <TabsContent value="users" className="mt-6 animate-fade-in">
           <UserManagementPanel />
         </TabsContent>
 
-        <TabsContent value="content" className="mt-6">
+        <TabsContent value="content" className="mt-6 animate-fade-in">
           <ContentManagementPanel />
         </TabsContent>
 
-        <TabsContent value="notifications" className="mt-6">
+        <TabsContent value="notifications" className="mt-6 animate-fade-in">
           <NotificationManagementPanel />
         </TabsContent>
 
-        <TabsContent value="platform" className="mt-6 space-y-6">
+        <TabsContent value="platform" className="mt-6 space-y-6 animate-fade-in">
           <PlatformModesPanel />
           <PageMaintenancePanel />
         </TabsContent>
 
-        <TabsContent value="exams" className="mt-6">
+        <TabsContent value="exams" className="mt-6 animate-fade-in">
           <ExamParticipationPanel />
         </TabsContent>
       </Tabs>
