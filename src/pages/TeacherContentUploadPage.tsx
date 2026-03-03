@@ -87,26 +87,51 @@ export const TeacherContentUploadPage: React.FC = () => {
     }
   }, [canCreateContent, navigate]);
 
+  const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB
+  const MAX_PDF_SIZE = 50 * 1024 * 1024; // 50MB
+
+  const validateFile = (file: File, acceptedTypes: string[], maxSize: number): boolean => {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const validExtensions = acceptedTypes
+      .filter(t => t.startsWith('.'))
+      .map(t => t.replace('.', ''));
+    const validMimeTypes = acceptedTypes.filter(t => !t.startsWith('.'));
+
+    const extValid = validExtensions.some(e => ext === e);
+    const mimeValid = validMimeTypes.some(t => file.type.includes(t));
+
+    if (!extValid && !mimeValid) {
+      toast.error('Geçersiz dosya türü');
+      return false;
+    }
+    if (file.size > maxSize) {
+      toast.error(`Dosya boyutu çok büyük (max ${formatFileSize(maxSize)})`);
+      return false;
+    }
+    return true;
+  };
+
   const handleFileDrop = (
     e: React.DragEvent<HTMLDivElement>,
     setFile: React.Dispatch<React.SetStateAction<File | null>>,
-    acceptedTypes: string[]
+    acceptedTypes: string[],
+    maxSize: number = MAX_VIDEO_SIZE
   ) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file && acceptedTypes.some(type => file.type.includes(type) || file.name.endsWith(type))) {
+    if (file && validateFile(file, acceptedTypes, maxSize)) {
       setFile(file);
-    } else {
-      toast.error('Geçersiz dosya türü');
     }
   };
 
   const handleFileSelect = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFile: React.Dispatch<React.SetStateAction<File | null>>
+    setFile: React.Dispatch<React.SetStateAction<File | null>>,
+    acceptedTypes: string[],
+    maxSize: number = MAX_VIDEO_SIZE
   ) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && validateFile(file, acceptedTypes, maxSize)) {
       setFile(file);
     }
   };

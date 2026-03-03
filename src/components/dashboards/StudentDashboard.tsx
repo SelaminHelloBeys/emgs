@@ -240,13 +240,13 @@ export const StudentDashboard: React.FC = () => {
 
           {/* Risk Warnings */}
           {riskWarnings.length > 0 && (
-            <Card className="p-4 border-amber-200 bg-amber-50/50">
+            <Card className="p-4 border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/20">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <h4 className="font-semibold text-sm text-amber-800">Riskli Kazanım Uyarıları</h4>
+                  <h4 className="font-semibold text-sm text-amber-800 dark:text-amber-300">Riskli Kazanım Uyarıları</h4>
                   {riskWarnings.map((w, i) => (
-                    <p key={i} className="text-sm text-amber-700">• {w}</p>
+                    <p key={i} className="text-sm text-amber-700 dark:text-amber-400">• {w}</p>
                   ))}
                 </div>
               </div>
