@@ -194,6 +194,7 @@ export const TeacherContentUploadPage: React.FC = () => {
     acceptedTypes,
     icon: Icon,
     description,
+    maxSize = MAX_VIDEO_SIZE,
   }: {
     file: File | null;
     setFile: React.Dispatch<React.SetStateAction<File | null>>;
@@ -202,6 +203,7 @@ export const TeacherContentUploadPage: React.FC = () => {
     acceptedTypes: string[];
     icon: React.ElementType;
     description: string;
+    maxSize?: number;
   }) => (
     <div
       className={cn(
@@ -209,7 +211,7 @@ export const TeacherContentUploadPage: React.FC = () => {
         file ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-surface-secondary"
       )}
       onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => handleFileDrop(e, setFile, acceptedTypes)}
+      onDrop={(e) => handleFileDrop(e, setFile, acceptedTypes, maxSize)}
     >
       {file ? (
         <div className="space-y-3">
@@ -243,7 +245,7 @@ export const TeacherContentUploadPage: React.FC = () => {
             ref={inputRef}
             type="file"
             accept={accept}
-            onChange={(e) => handleFileSelect(e, setFile)}
+            onChange={(e) => handleFileSelect(e, setFile, acceptedTypes, maxSize)}
             className="hidden"
           />
           <Button 
