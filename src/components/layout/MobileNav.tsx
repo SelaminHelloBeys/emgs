@@ -18,6 +18,7 @@ import {
   Megaphone,
   PenTool,
   Trophy,
+  ScanLine,
 } from 'lucide-react';
 
 interface NavItem {
