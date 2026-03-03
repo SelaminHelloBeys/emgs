@@ -21,6 +21,7 @@ import { DenemelerPage } from "./pages/DenemelerPage";
 import { DenemeDetailPage } from "./pages/DenemeDetailPage";
 import { BadgesPage } from "./pages/BadgesPage";
 import { ModerationPage } from "./pages/ModerationPage";
+import { OpticalReaderPage } from "./pages/OpticalReaderPage";
 import NotFound from "./pages/NotFound";
 
 // Layout
@@ -54,6 +55,7 @@ const App = () => (
                   <Route path="/denemeler/:id" element={<DenemeDetailPage />} />
                   <Route path="/rozetler" element={<BadgesPage />} />
                   <Route path="/moderation" element={<ModerationPage />} />
+                  <Route path="/optik-okuyucu" element={<OpticalReaderPage />} />
                 </Route>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="*" element={<NotFound />} />
