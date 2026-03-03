@@ -20,6 +20,7 @@ import {
   ChevronRight,
   PenTool,
   Trophy,
+  ScanLine,
 } from 'lucide-react';
 
 interface SidebarProps {
