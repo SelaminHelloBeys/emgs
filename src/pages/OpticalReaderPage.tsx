@@ -28,22 +28,64 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import Tesseract from 'tesseract.js';
 
+// LGS Subject definitions
+const LGS_SUBJECTS = [
+  { key: 'turkce', label: 'Türkçe', count: 20, start: 1, coefficient: 4 },
+  { key: 'matematik', label: 'Matematik', count: 20, start: 21, coefficient: 4 },
+  { key: 'fen', label: 'Fen Bilimleri', count: 20, start: 41, coefficient: 4 },
+  { key: 'inkilap', label: 'İnkılap Tarihi', count: 10, start: 61, coefficient: 1 },
+  { key: 'din', label: 'Din Kültürü', count: 10, start: 71, coefficient: 1 },
+  { key: 'ingilizce', label: 'İngilizce', count: 10, start: 81, coefficient: 1 },
+] as const;
+
+const TOTAL_QUESTIONS = 90;
+
 interface ScanResult {
-  studentNumber: string;
+  detectedName: string;
   answers: Record<number, string>;
   totalQuestions: number;
 }
 
-interface GradingResult {
+interface SubjectScore {
   correct: number;
   wrong: number;
   blank: number;
   net: number;
+}
+
+interface GradingResult {
+  subjects: Record<string, SubjectScore>;
+  totalCorrect: number;
+  totalWrong: number;
+  totalBlank: number;
+  totalNet: number;
+  weightedNet: number;
+  lgsPuan: number;
   answers: { question: number; selected: string; correct: string; status: 'correct' | 'wrong' | 'blank' }[];
 }
 
-// Answer key: maps question number to correct option (A/B/C/D)
-const EMPTY_ANSWER_KEY: Record<number, string> = {};
+// Simple string similarity (Dice coefficient)
+function stringSimilarity(a: string, b: string): number {
+  const al = a.toLowerCase().trim();
+  const bl = b.toLowerCase().trim();
+  if (al === bl) return 1;
+  if (al.length < 2 || bl.length < 2) return 0;
+  const bigrams = new Map<string, number>();
+  for (let i = 0; i < al.length - 1; i++) {
+    const bi = al.substring(i, i + 2);
+    bigrams.set(bi, (bigrams.get(bi) || 0) + 1);
+  }
+  let intersect = 0;
+  for (let i = 0; i < bl.length - 1; i++) {
+    const bi = bl.substring(i, i + 2);
+    const count = bigrams.get(bi) || 0;
+    if (count > 0) {
+      bigrams.set(bi, count - 1);
+      intersect++;
+    }
+  }
+  return (2 * intersect) / (al.length - 1 + bl.length - 1);
+}
 
 export const OpticalReaderPage: React.FC = () => {
   const { canCreateContent, user } = useAuth();
@@ -54,9 +96,9 @@ export const OpticalReaderPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [gradingResult, setGradingResult] = useState<GradingResult | null>(null);
-  const [answerKey, setAnswerKey] = useState<Record<number, string>>(EMPTY_ANSWER_KEY);
-  const [questionCount, setQuestionCount] = useState(20);
-  const [manualStudentNumber, setManualStudentNumber] = useState('');
+  const [answerKey, setAnswerKey] = useState<Record<number, string>>({});
+  const [matchedStudent, setMatchedStudent] = useState<{ user_id: string; name: string } | null>(null);
+  const [allProfiles, setAllProfiles] = useState<{ user_id: string; name: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
 
@@ -65,14 +107,34 @@ export const OpticalReaderPage: React.FC = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize answer key when question count changes
+  // Load all profiles for name matching
+  useEffect(() => {
+    const loadProfiles = async () => {
+      const { data } = await supabase.from('profiles').select('user_id, name');
+      setAllProfiles(data || []);
+    };
+    loadProfiles();
+  }, []);
+
+  // Initialize answer key
   useEffect(() => {
     const key: Record<number, string> = {};
-    for (let i = 1; i <= questionCount; i++) {
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
       key[i] = answerKey[i] || '';
     }
     setAnswerKey(key);
-  }, [questionCount]);
+  }, []);
+
+  // Set video srcObject after cameraActive renders the video element
+  useEffect(() => {
+    if (cameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(err => {
+        console.error('Video play error:', err);
+        toast.error('Kamera başlatılamadı');
+      });
+    }
+  }, [cameraActive]);
 
   const startCamera = async () => {
     try {
@@ -80,13 +142,10 @@ export const OpticalReaderPage: React.FC = () => {
         video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
+      // Set cameraActive first, then useEffect will attach stream to video
       setCameraActive(true);
     } catch (err) {
-      toast.error('Kamera erişimi sağlanamadı');
+      toast.error('Kamera erişimi sağlanamadı. Tarayıcı izinlerini kontrol edin.');
       console.error('Camera error:', err);
     }
   };
@@ -123,10 +182,23 @@ export const OpticalReaderPage: React.FC = () => {
       return;
     }
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      setCapturedImage(ev.target?.result as string);
-    };
+    reader.onload = (ev) => setCapturedImage(ev.target?.result as string);
     reader.readAsDataURL(file);
+  };
+
+  const findClosestStudent = (detectedName: string) => {
+    if (!detectedName || allProfiles.length === 0) return null;
+    let bestMatch: { user_id: string; name: string } | null = null;
+    let bestScore = 0;
+
+    for (const profile of allProfiles) {
+      const score = stringSimilarity(detectedName, profile.name);
+      if (score > bestScore && score > 0.3) {
+        bestScore = score;
+        bestMatch = profile;
+      }
+    }
+    return bestMatch;
   };
 
   const processImage = async () => {
@@ -146,45 +218,47 @@ export const OpticalReaderPage: React.FC = () => {
       const text = result.data.text;
       console.log('OCR Result:', text);
 
-      // Try to extract student number (look for patterns like "No: 123" or just numbers)
-      const numberMatch = text.match(/(?:no|numara|öğrenci)\s*:?\s*(\d{1,6})/i) 
-        || text.match(/^(\d{3,6})$/m);
-      const studentNumber = numberMatch ? numberMatch[1] : '';
+      // Try to extract name from "Ad" or "İsim" field
+      const nameMatch = text.match(/(?:ad[ıi]?\s*(?:soyad[ıi]?)?|isim|name)\s*:?\s*([A-Za-zÇçĞğİıÖöŞşÜü\s]{3,40})/i);
+      const detectedName = nameMatch ? nameMatch[1].trim() : '';
 
-      // Try to extract marked answers
-      // Look for patterns like "1-A", "1.A", "1) A", etc.
+      // Try to extract answers
       const answers: Record<number, string> = {};
       const answerPattern = /(\d{1,2})\s*[-.)]\s*([A-Da-d])/g;
       let match;
       while ((match = answerPattern.exec(text)) !== null) {
         const qNum = parseInt(match[1]);
         const answer = match[2].toUpperCase();
-        if (qNum >= 1 && qNum <= questionCount) {
+        if (qNum >= 1 && qNum <= TOTAL_QUESTIONS) {
           answers[qNum] = answer;
         }
       }
 
-      // Also look for bubble-style patterns (consecutive A/B/C/D)
-      const lines = text.split('\n').filter(l => l.trim());
-      let qCounter = Object.keys(answers).length > 0 ? 0 : 1;
+      // Bubble-style fallback
       if (Object.keys(answers).length === 0) {
+        const lines = text.split('\n').filter(l => l.trim());
+        let qCounter = 1;
         for (const line of lines) {
           const bubbleMatch = line.trim().match(/^[A-Da-d]$/);
-          if (bubbleMatch && qCounter <= questionCount) {
+          if (bubbleMatch && qCounter <= TOTAL_QUESTIONS) {
             answers[qCounter] = bubbleMatch[0].toUpperCase();
             qCounter++;
           }
         }
       }
 
-      setScanResult({
-        studentNumber,
-        answers,
-        totalQuestions: questionCount,
-      });
+      setScanResult({ detectedName, answers, totalQuestions: TOTAL_QUESTIONS });
 
-      if (studentNumber) {
-        setManualStudentNumber(studentNumber);
+      // Find closest matching student
+      if (detectedName) {
+        const closest = findClosestStudent(detectedName);
+        if (closest) {
+          setMatchedStudent(closest);
+          toast.success(`"${detectedName}" → "${closest.name}" olarak eşleştirildi`);
+        } else {
+          setMatchedStudent(null);
+          toast.warning(`"${detectedName}" ile eşleşen öğrenci bulunamadı`);
+        }
       }
 
       toast.success(`OCR tamamlandı. ${Object.keys(answers).length} cevap tespit edildi.`);
@@ -198,76 +272,85 @@ export const OpticalReaderPage: React.FC = () => {
 
   const gradeAnswers = useCallback(() => {
     if (!scanResult) return;
-
     const hasAnswerKey = Object.values(answerKey).some(v => v !== '');
     if (!hasAnswerKey) {
       toast.error('Lütfen cevap anahtarını doldurun');
       return;
     }
 
-    const results: GradingResult['answers'] = [];
-    let correct = 0, wrong = 0, blank = 0;
+    const subjectScores: Record<string, SubjectScore> = {};
+    const allResults: GradingResult['answers'] = [];
+    let totalCorrect = 0, totalWrong = 0, totalBlank = 0;
+    let weightedNet = 0;
 
-    for (let i = 1; i <= questionCount; i++) {
-      const selected = scanResult.answers[i] || '';
-      const correctAnswer = answerKey[i] || '';
-      
-      if (!selected) {
-        blank++;
-        results.push({ question: i, selected: '-', correct: correctAnswer, status: 'blank' });
-      } else if (selected === correctAnswer) {
-        correct++;
-        results.push({ question: i, selected, correct: correctAnswer, status: 'correct' });
-      } else {
-        wrong++;
-        results.push({ question: i, selected, correct: correctAnswer, status: 'wrong' });
+    for (const subject of LGS_SUBJECTS) {
+      let correct = 0, wrong = 0, blank = 0;
+      for (let i = subject.start; i < subject.start + subject.count; i++) {
+        const selected = scanResult.answers[i] || '';
+        const correctAnswer = answerKey[i] || '';
+
+        if (!selected || selected.trim() === '') {
+          blank++;
+          allResults.push({ question: i, selected: '-', correct: correctAnswer, status: 'blank' });
+        } else if (selected === correctAnswer) {
+          correct++;
+          allResults.push({ question: i, selected, correct: correctAnswer, status: 'correct' });
+        } else {
+          wrong++;
+          allResults.push({ question: i, selected, correct: correctAnswer, status: 'wrong' });
+        }
       }
+
+      const net = correct - (wrong / 3);
+      subjectScores[subject.key] = { correct, wrong, blank, net: parseFloat(net.toFixed(2)) };
+      weightedNet += net * subject.coefficient;
+      totalCorrect += correct;
+      totalWrong += wrong;
+      totalBlank += blank;
     }
 
-    const net = correct - (wrong * 0.25);
+    const totalNet = totalCorrect - (totalWrong / 3);
+    // LGS Puan = (Ağırlıklı Net / 270) × 500
+    const lgsPuan = Math.max(0, (weightedNet / 270) * 500);
 
-    setGradingResult({ correct, wrong, blank, net, answers: results });
+    setGradingResult({
+      subjects: subjectScores,
+      totalCorrect,
+      totalWrong,
+      totalBlank,
+      totalNet: parseFloat(totalNet.toFixed(2)),
+      weightedNet: parseFloat(weightedNet.toFixed(2)),
+      lgsPuan: parseFloat(lgsPuan.toFixed(2)),
+      answers: allResults,
+    });
     toast.success('Notlandırma tamamlandı!');
-  }, [scanResult, answerKey, questionCount]);
+  }, [scanResult, answerKey]);
 
   const saveResult = async () => {
-    if (!gradingResult || !selectedExamId || !manualStudentNumber) {
-      toast.error('Lütfen sınav, öğrenci numarası ve notlandırma sonuçlarını kontrol edin');
+    if (!gradingResult || !selectedExamId || !matchedStudent) {
+      toast.error('Lütfen sınav seçin ve öğrenci eşleşmesini kontrol edin');
       return;
     }
 
     setIsSaving(true);
     try {
-      // Find student by school number (looking in profiles)
-      const { data: studentProfiles } = await supabase
-        .from('profiles')
-        .select('user_id, name')
-        .ilike('grade', `%${manualStudentNumber}%`)
-        .limit(1);
-
-      // Try to save as exam participation
-      const studentUserId = studentProfiles?.[0]?.user_id;
-      
-      if (!studentUserId) {
-        toast.error('Öğrenci bulunamadı. Lütfen öğrenci numarasını kontrol edin.');
-        setIsSaving(false);
-        return;
-      }
+      const subjectScoresJson = gradingResult.subjects;
 
       const { error } = await supabase
         .from('student_exam_participation')
         .upsert({
           exam_id: selectedExamId,
-          user_id: studentUserId,
+          user_id: matchedStudent.user_id,
           participated: true,
-          correct_count: gradingResult.correct,
-          wrong_count: gradingResult.wrong,
-          blank_count: gradingResult.blank,
-          net_score: gradingResult.net,
+          correct_count: gradingResult.totalCorrect,
+          wrong_count: gradingResult.totalWrong,
+          blank_count: gradingResult.totalBlank,
+          net_score: gradingResult.totalNet,
+          subject_scores: subjectScoresJson as any,
         }, { onConflict: 'exam_id,user_id' });
 
       if (error) throw error;
-      toast.success(`${studentProfiles[0].name} için sonuç kaydedildi!`);
+      toast.success(`${matchedStudent.name} için sonuç kaydedildi!`);
     } catch (err) {
       console.error('Save error:', err);
       toast.error('Sonuç kaydedilirken hata oluştu');
@@ -279,7 +362,7 @@ export const OpticalReaderPage: React.FC = () => {
     setCapturedImage(null);
     setScanResult(null);
     setGradingResult(null);
-    setManualStudentNumber('');
+    setMatchedStudent(null);
     setOcrProgress(0);
     stopCamera();
   };
@@ -297,7 +380,7 @@ export const OpticalReaderPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-fade-in">
+    <div className="space-y-6 max-w-5xl mx-auto animate-fade-in">
       <div>
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
@@ -305,7 +388,7 @@ export const OpticalReaderPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold">Optik Okuyucu</h1>
-            <p className="text-muted-foreground">Optik formları kamera ile tarayın ve otomatik notlandırın</p>
+            <p className="text-muted-foreground">LGS optik formlarını tarayın ve otomatik notlandırın (90 soru)</p>
           </div>
         </div>
       </div>
@@ -314,61 +397,52 @@ export const OpticalReaderPage: React.FC = () => {
       <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4">
         <h3 className="font-semibold text-lg flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">1</span>
-          Ayarlar
+          Sınav Seçimi
         </h3>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Sınav Seçin</label>
-            <Select value={selectedExamId} onValueChange={setSelectedExamId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sınav seçin..." />
-              </SelectTrigger>
-              <SelectContent>
-                {exams.map(exam => (
-                  <SelectItem key={exam.id} value={exam.id}>{exam.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Soru Sayısı</label>
-            <Select value={String(questionCount)} onValueChange={v => setQuestionCount(Number(v))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[10, 15, 20, 25, 30, 40, 50, 60, 90].map(n => (
-                  <SelectItem key={n} value={String(n)}>{n} Soru</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <Select value={selectedExamId} onValueChange={setSelectedExamId}>
+          <SelectTrigger>
+            <SelectValue placeholder="Sınav seçin..." />
+          </SelectTrigger>
+          <SelectContent>
+            {exams.map(exam => (
+              <SelectItem key={exam.id} value={exam.id}>{exam.title}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Card>
 
-      {/* Step 2: Answer Key */}
+      {/* Step 2: LGS Answer Key by Subject */}
       <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4">
         <h3 className="font-semibold text-lg flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">2</span>
-          Cevap Anahtarı
+          Cevap Anahtarı (LGS - 90 Soru)
         </h3>
-        <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-          {Array.from({ length: questionCount }, (_, i) => i + 1).map(qNum => (
-            <div key={qNum} className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">{qNum}</p>
-              <Select value={answerKey[qNum] || ''} onValueChange={v => setAnswerKey(prev => ({ ...prev, [qNum]: v }))}>
-                <SelectTrigger className="h-8 text-xs px-1">
-                  <SelectValue placeholder="-" />
-                </SelectTrigger>
-                <SelectContent>
-                  {['A', 'B', 'C', 'D'].map(opt => (
-                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        
+        {LGS_SUBJECTS.map(subject => (
+          <div key={subject.key} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">{subject.label}</span>
+              <span className="text-xs text-muted-foreground">({subject.count} soru, x{subject.coefficient} katsayı)</span>
             </div>
-          ))}
-        </div>
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+              {Array.from({ length: subject.count }, (_, i) => subject.start + i).map(qNum => (
+                <div key={qNum} className="text-center">
+                  <p className="text-[10px] text-muted-foreground mb-0.5">{qNum}</p>
+                  <Select value={answerKey[qNum] || ''} onValueChange={v => setAnswerKey(prev => ({ ...prev, [qNum]: v }))}>
+                    <SelectTrigger className="h-7 text-xs px-1">
+                      <SelectValue placeholder="-" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['A', 'B', 'C', 'D'].map(opt => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </Card>
 
       {/* Step 3: Capture */}
@@ -400,7 +474,13 @@ export const OpticalReaderPage: React.FC = () => {
         {cameraActive && (
           <div className="space-y-3">
             <div className="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
-              <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                autoPlay
+                playsInline
+                muted
+              />
               <div className="absolute inset-0 border-2 border-primary/30 rounded-xl pointer-events-none">
                 <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-primary" />
                 <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-primary" />
@@ -427,14 +507,9 @@ export const OpticalReaderPage: React.FC = () => {
             <div className="flex gap-3">
               <Button onClick={processImage} variant="apple" className="gap-2 flex-1" disabled={isProcessing}>
                 {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    İşleniyor... %{ocrProgress}
-                  </>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> İşleniyor... %{ocrProgress}</>
                 ) : (
-                  <>
-                    <Eye className="w-4 h-4" /> OCR ile Tara
-                  </>
+                  <><Eye className="w-4 h-4" /> OCR ile Tara</>
                 )}
               </Button>
               <Button onClick={resetAll} variant="outline" className="gap-2">
@@ -452,7 +527,7 @@ export const OpticalReaderPage: React.FC = () => {
         <canvas ref={canvasRef} className="hidden" />
       </Card>
 
-      {/* Step 4: Results & Manual Edit */}
+      {/* Step 4: Results & Student Match */}
       {scanResult && (
         <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4 animate-slide-up">
           <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -460,46 +535,70 @@ export const OpticalReaderPage: React.FC = () => {
             Sonuçları Doğrula
           </h3>
 
-          <div>
-            <label className="text-sm font-medium mb-2 block">Öğrenci Numarası</label>
-            <Input
-              value={manualStudentNumber}
-              onChange={e => setManualStudentNumber(e.target.value)}
-              placeholder="Öğrenci numarasını girin veya düzeltin..."
-            />
+          {/* Detected name & matched student */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Tespit Edilen İsim (OCR)</label>
+              <Input value={scanResult.detectedName || '(tespit edilemedi)'} readOnly className="bg-muted" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Eşleşen Öğrenci</label>
+              <Select
+                value={matchedStudent?.user_id || ''}
+                onValueChange={v => {
+                  const p = allProfiles.find(p => p.user_id === v);
+                  setMatchedStudent(p || null);
+                }}
+              >
+                <SelectTrigger className={matchedStudent ? 'border-green-500' : 'border-destructive'}>
+                  <SelectValue placeholder="Öğrenci seçin..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {allProfiles.map(p => (
+                    <SelectItem key={p.user_id} value={p.user_id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
+          {/* Detected answers by subject */}
           <div>
-            <p className="text-sm font-medium mb-2">Tespit Edilen Cevaplar ({Object.keys(scanResult.answers).length}/{questionCount})</p>
-            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-              {Array.from({ length: questionCount }, (_, i) => i + 1).map(qNum => {
-                const answer = scanResult.answers[qNum] || '';
-                return (
-                  <div key={qNum} className="text-center">
-                    <p className="text-xs text-muted-foreground mb-1">{qNum}</p>
-                    <Select
-                      value={answer}
-                      onValueChange={v => {
-                        setScanResult(prev => {
-                          if (!prev) return prev;
-                          return { ...prev, answers: { ...prev.answers, [qNum]: v } };
-                        });
-                      }}
-                    >
-                      <SelectTrigger className={cn("h-8 text-xs px-1", answer ? 'border-primary' : 'border-muted')}>
-                        <SelectValue placeholder="-" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value=" ">-</SelectItem>
-                        {['A', 'B', 'C', 'D'].map(opt => (
-                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                );
-              })}
-            </div>
+            <p className="text-sm font-medium mb-2">Tespit Edilen Cevaplar ({Object.keys(scanResult.answers).length}/{TOTAL_QUESTIONS})</p>
+            {LGS_SUBJECTS.map(subject => (
+              <div key={subject.key} className="mb-3">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">{subject.label}</p>
+                <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+                  {Array.from({ length: subject.count }, (_, i) => subject.start + i).map(qNum => {
+                    const answer = scanResult.answers[qNum] || '';
+                    return (
+                      <div key={qNum} className="text-center">
+                        <p className="text-[10px] text-muted-foreground mb-0.5">{qNum}</p>
+                        <Select
+                          value={answer}
+                          onValueChange={v => {
+                            setScanResult(prev => {
+                              if (!prev) return prev;
+                              return { ...prev, answers: { ...prev.answers, [qNum]: v === ' ' ? '' : v } };
+                            });
+                          }}
+                        >
+                          <SelectTrigger className={cn("h-7 text-xs px-1", answer ? 'border-primary' : 'border-muted')}>
+                            <SelectValue placeholder="-" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value=" ">-</SelectItem>
+                            {['A', 'B', 'C', 'D'].map(opt => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
           <Button onClick={gradeAnswers} variant="apple" className="w-full gap-2">
@@ -516,48 +615,75 @@ export const OpticalReaderPage: React.FC = () => {
             Notlandırma Sonucu
           </h3>
 
+          {/* LGS Total Score */}
+          <div className="text-center p-4 rounded-2xl bg-primary/10 dark:bg-primary/20">
+            <p className="text-4xl font-bold text-primary">{gradingResult.lgsPuan.toFixed(1)}</p>
+            <p className="text-sm text-muted-foreground">LGS Puan (500 üzerinden)</p>
+          </div>
+
+          {/* Overall stats */}
           <div className="grid grid-cols-4 gap-3">
             <div className="text-center p-3 rounded-xl bg-green-500/10 dark:bg-green-500/20">
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{gradingResult.correct}</p>
+              <p className="text-xl font-bold text-green-600 dark:text-green-400">{gradingResult.totalCorrect}</p>
               <p className="text-xs text-muted-foreground">Doğru</p>
             </div>
             <div className="text-center p-3 rounded-xl bg-red-500/10 dark:bg-red-500/20">
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{gradingResult.wrong}</p>
+              <p className="text-xl font-bold text-red-600 dark:text-red-400">{gradingResult.totalWrong}</p>
               <p className="text-xs text-muted-foreground">Yanlış</p>
             </div>
             <div className="text-center p-3 rounded-xl bg-muted/50">
-              <p className="text-2xl font-bold text-muted-foreground">{gradingResult.blank}</p>
+              <p className="text-xl font-bold text-muted-foreground">{gradingResult.totalBlank}</p>
               <p className="text-xs text-muted-foreground">Boş</p>
             </div>
             <div className="text-center p-3 rounded-xl bg-primary/10 dark:bg-primary/20">
-              <p className="text-2xl font-bold text-primary">{gradingResult.net.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">Net</p>
+              <p className="text-xl font-bold text-primary">{gradingResult.weightedNet.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground">Ağırlıklı Net</p>
+            </div>
+          </div>
+
+          {/* Per-subject breakdown */}
+          <div className="space-y-2">
+            <p className="text-sm font-semibold">Ders Bazlı Analiz</p>
+            <div className="grid gap-2">
+              {LGS_SUBJECTS.map(subject => {
+                const s = gradingResult.subjects[subject.key];
+                if (!s) return null;
+                return (
+                  <div key={subject.key} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 dark:bg-muted/10">
+                    <span className="text-sm font-medium w-28 shrink-0">{subject.label}</span>
+                    <span className="text-xs text-green-600">D:{s.correct}</span>
+                    <span className="text-xs text-red-600">Y:{s.wrong}</span>
+                    <span className="text-xs text-muted-foreground">B:{s.blank}</span>
+                    <span className="text-xs font-bold text-primary ml-auto">Net: {s.net.toFixed(2)} (×{subject.coefficient})</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Detailed answer grid */}
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+          <div className="grid grid-cols-5 sm:grid-cols-10 gap-1">
             {gradingResult.answers.map(a => (
               <div
                 key={a.question}
                 className={cn(
-                  "text-center p-1.5 rounded-lg text-xs font-medium",
+                  "text-center p-1 rounded-md text-xs font-medium",
                   a.status === 'correct' && 'bg-green-500/10 text-green-600 dark:text-green-400',
                   a.status === 'wrong' && 'bg-red-500/10 text-red-600 dark:text-red-400',
                   a.status === 'blank' && 'bg-muted text-muted-foreground',
                 )}
               >
-                <div className="text-[10px] opacity-60">{a.question}</div>
+                <div className="text-[9px] opacity-60">{a.question}</div>
                 <div>{a.selected}</div>
               </div>
             ))}
           </div>
 
-          <Button onClick={saveResult} variant="apple" className="w-full gap-2" disabled={isSaving || !selectedExamId}>
+          <Button onClick={saveResult} variant="apple" className="w-full gap-2" disabled={isSaving || !selectedExamId || !matchedStudent}>
             {isSaving ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Kaydediliyor...</>
             ) : (
-              <><Save className="w-4 h-4" /> Sonucu Kaydet</>
+              <><Save className="w-4 h-4" /> Sonucu Kaydet ({matchedStudent?.name || 'Öğrenci seçilmedi'})</>
             )}
           </Button>
         </Card>
