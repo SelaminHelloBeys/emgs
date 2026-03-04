@@ -28,7 +28,6 @@ export const useUserManagement = () => {
     }
 
     try {
-      // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -36,7 +35,6 @@ export const useUserManagement = () => {
 
       if (profilesError) throw profilesError;
 
-      // Fetch all roles
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
@@ -73,7 +71,6 @@ export const useUserManagement = () => {
     }
 
     try {
-      // Check if user already has a role
       const { data: existingRole } = await supabase
         .from('user_roles')
         .select('id')
@@ -81,20 +78,16 @@ export const useUserManagement = () => {
         .maybeSingle();
 
       if (existingRole) {
-        // Delete existing role first
         const { error: deleteError } = await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', userId);
-
         if (deleteError) throw deleteError;
       }
 
-      // Insert new role
       const { error: insertError } = await supabase
         .from('user_roles')
         .insert({ user_id: userId, role: newRole });
-
       if (insertError) throw insertError;
 
       toast.success('Kullanıcı rolü güncellendi');
@@ -113,8 +106,26 @@ export const useUserManagement = () => {
       return { error: new Error('Not authorized') };
     }
 
-    // Note: This only removes from profiles, actual auth user deletion requires admin API
     try {
+      // Delete from user_roles first
+      await supabase.from('user_roles').delete().eq('user_id', userId);
+      
+      // Delete from user_badges
+      await supabase.from('user_badges').delete().eq('user_id', userId);
+      
+      // Delete from user_stats
+      await supabase.from('user_stats').delete().eq('user_id', userId);
+      
+      // Delete from video_watch_progress
+      await supabase.from('video_watch_progress').delete().eq('user_id', userId);
+      
+      // Delete from student_exam_participation
+      await supabase.from('student_exam_participation').delete().eq('user_id', userId);
+      
+      // Delete from homework_submissions
+      await supabase.from('homework_submissions').delete().eq('user_id', userId);
+
+      // Finally delete profile
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -122,7 +133,7 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
-      toast.success('Kullanıcı profili silindi');
+      toast.success('Kullanıcı ve ilişkili veriler silindi');
       await fetchUsers();
       return { error: null };
     } catch (error) {
