@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_access_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          is_used: boolean
+          target_class: string | null
+          target_name: string
+          target_role: Database["public"]["Enums"]["app_role"]
+          target_school: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          target_class?: string | null
+          target_name: string
+          target_role?: Database["public"]["Enums"]["app_role"]
+          target_school?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          target_class?: string | null
+          target_name?: string
+          target_role?: Database["public"]["Enums"]["app_role"]
+          target_school?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
           content: string
@@ -312,6 +354,7 @@ export type Database = {
           id: string
           net_score: number | null
           participated: boolean
+          subject_scores: Json | null
           updated_at: string
           user_id: string
           wrong_count: number | null
@@ -326,6 +369,7 @@ export type Database = {
           id?: string
           net_score?: number | null
           participated?: boolean
+          subject_scores?: Json | null
           updated_at?: string
           user_id: string
           wrong_count?: number | null
@@ -340,6 +384,7 @@ export type Database = {
           id?: string
           net_score?: number | null
           participated?: boolean
+          subject_scores?: Json | null
           updated_at?: string
           user_id?: string
           wrong_count?: number | null
