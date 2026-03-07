@@ -26,7 +26,7 @@ import NotFound from "./pages/NotFound";
 
 // Layout
 import { AppLayout } from "./components/layout/AppLayout";
-import { AICoach } from "./components/AICoach";
+
 
 const queryClient = new QueryClient();
 
