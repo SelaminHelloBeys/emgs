@@ -293,33 +293,6 @@ export const AuthPage: React.FC = () => {
                 Google ile Devam Et
               </Button>
 
-              {/* Apple - Coming Soon */}
-              <Button
-                variant="outline"
-                size="xl"
-                className="w-full gap-3 mb-3 border-border/50 opacity-60 cursor-not-allowed relative"
-                disabled
-              >
-                <Apple className="w-5 h-5" />
-                Apple ile Devam Et
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  Yakında
-                </span>
-              </Button>
-
-              {/* Phone - Coming Soon */}
-              <Button
-                variant="outline"
-                size="xl"
-                className="w-full gap-3 mb-3 border-border/50 opacity-60 cursor-not-allowed relative"
-                disabled
-              >
-                <Phone className="w-5 h-5" />
-                Telefon ile Devam Et
-                <span className="absolute right-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  Yakında
-                </span>
-              </Button>
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
