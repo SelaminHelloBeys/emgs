@@ -96,6 +96,17 @@ export const AppLayout: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // Play login sound once on mount
+  useEffect(() => {
+    if (isAuthenticated && user && !isLoadingModes && !showLoadingScreen) {
+      try {
+        const audio = new Audio('/sounds/login-sound.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch {}
+    }
+  }, [isAuthenticated, user, isLoadingModes, showLoadingScreen]);
+
   if (!isAuthenticated || !user || isLoadingModes || showLoadingScreen) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">

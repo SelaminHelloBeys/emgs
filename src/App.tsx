@@ -39,7 +39,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <BadgeNotification>
-              <AICoach />
+              
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route element={<AppLayout />}>
