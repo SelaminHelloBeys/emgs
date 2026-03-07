@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './Sidebar';
@@ -95,6 +95,19 @@ export const AppLayout: React.FC = () => {
       navigate('/auth');
     }
   }, [isAuthenticated, navigate]);
+
+  // Play login sound once on mount
+  const soundPlayedRef = useRef(false);
+  useEffect(() => {
+    if (isAuthenticated && user && !isLoadingModes && !showLoadingScreen && !soundPlayedRef.current) {
+      soundPlayedRef.current = true;
+      try {
+        const audio = new Audio('/sounds/login-sound.mp3');
+        audio.volume = 0.4;
+        audio.play().catch(() => {});
+      } catch {}
+    }
+  }, [isAuthenticated, user, isLoadingModes, showLoadingScreen]);
 
   if (!isAuthenticated || !user || isLoadingModes || showLoadingScreen) {
     return (

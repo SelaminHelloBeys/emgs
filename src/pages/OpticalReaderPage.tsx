@@ -23,10 +23,11 @@ import {
   Eye,
   Save,
   X,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import Tesseract from 'tesseract.js';
 
 // LGS Subject definitions
 const LGS_SUBJECTS = [
@@ -87,6 +88,8 @@ function stringSimilarity(a: string, b: string): number {
   return (2 * intersect) / (al.length - 1 + bl.length - 1);
 }
 
+const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-reader`;
+
 export const OpticalReaderPage: React.FC = () => {
   const { canCreateContent, user } = useAuth();
   const { exams } = useTrialExams();
@@ -100,7 +103,7 @@ export const OpticalReaderPage: React.FC = () => {
   const [matchedStudent, setMatchedStudent] = useState<{ user_id: string; name: string } | null>(null);
   const [allProfiles, setAllProfiles] = useState<{ user_id: string; name: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [ocrProgress, setOcrProgress] = useState(0);
+  const [processingStage, setProcessingStage] = useState('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -142,7 +145,6 @@ export const OpticalReaderPage: React.FC = () => {
         video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
       });
       streamRef.current = stream;
-      // Set cameraActive first, then useEffect will attach stream to video
       setCameraActive(true);
     } catch (err) {
       toast.error('Kamera erişimi sağlanamadı. Tarayıcı izinlerini kontrol edin.');
@@ -204,45 +206,40 @@ export const OpticalReaderPage: React.FC = () => {
   const processImage = async () => {
     if (!capturedImage) return;
     setIsProcessing(true);
-    setOcrProgress(0);
+    setProcessingStage('AI modeli görüntüyü analiz ediyor...');
 
     try {
-      const result = await Tesseract.recognize(capturedImage, 'tur+eng', {
-        logger: (m) => {
-          if (m.status === 'recognizing text') {
-            setOcrProgress(Math.round(m.progress * 100));
-          }
-        },
-      });
-
-      const text = result.data.text;
-      console.log('OCR Result:', text);
-
-      // Try to extract name from "Ad" or "İsim" field
-      const nameMatch = text.match(/(?:ad[ıi]?\s*(?:soyad[ıi]?)?|isim|name)\s*:?\s*([A-Za-zÇçĞğİıÖöŞşÜü\s]{3,40})/i);
-      const detectedName = nameMatch ? nameMatch[1].trim() : '';
-
-      // Try to extract answers
-      const answers: Record<number, string> = {};
-      const answerPattern = /(\d{1,2})\s*[-.)]\s*([A-Da-d])/g;
-      let match;
-      while ((match = answerPattern.exec(text)) !== null) {
-        const qNum = parseInt(match[1]);
-        const answer = match[2].toUpperCase();
-        if (qNum >= 1 && qNum <= TOTAL_QUESTIONS) {
-          answers[qNum] = answer;
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Lütfen giriş yapın');
       }
 
-      // Bubble-style fallback
-      if (Object.keys(answers).length === 0) {
-        const lines = text.split('\n').filter(l => l.trim());
-        let qCounter = 1;
-        for (const line of lines) {
-          const bubbleMatch = line.trim().match(/^[A-Da-d]$/);
-          if (bubbleMatch && qCounter <= TOTAL_QUESTIONS) {
-            answers[qCounter] = bubbleMatch[0].toUpperCase();
-            qCounter++;
+      setProcessingStage('Optik form okunuyor...');
+      
+      const response = await fetch(OCR_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ imageBase64: capturedImage }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'OCR hatası');
+      }
+
+      const result = await response.json();
+      
+      const detectedName = result.name || '';
+      const answers: Record<number, string> = {};
+      
+      if (result.answers) {
+        for (const [key, value] of Object.entries(result.answers)) {
+          const qNum = parseInt(key);
+          if (qNum >= 1 && qNum <= TOTAL_QUESTIONS && typeof value === 'string') {
+            answers[qNum] = value.toUpperCase();
           }
         }
       }
@@ -261,13 +258,14 @@ export const OpticalReaderPage: React.FC = () => {
         }
       }
 
-      toast.success(`OCR tamamlandı. ${Object.keys(answers).length} cevap tespit edildi.`);
+      toast.success(`AI tarama tamamlandı. ${Object.keys(answers).length} cevap tespit edildi.`);
     } catch (err) {
-      console.error('OCR Error:', err);
-      toast.error('Görüntü işlenirken hata oluştu');
+      console.error('AI OCR Error:', err);
+      toast.error(err instanceof Error ? err.message : 'Görüntü işlenirken hata oluştu');
     }
 
     setIsProcessing(false);
+    setProcessingStage('');
   };
 
   const gradeAnswers = useCallback(() => {
@@ -310,7 +308,6 @@ export const OpticalReaderPage: React.FC = () => {
     }
 
     const totalNet = totalCorrect - (totalWrong / 3);
-    // LGS Puan = (Ağırlıklı Net / 270) × 500
     const lgsPuan = Math.max(0, (weightedNet / 270) * 500);
 
     setGradingResult({
@@ -334,8 +331,6 @@ export const OpticalReaderPage: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const subjectScoresJson = gradingResult.subjects;
-
       const { error } = await supabase
         .from('student_exam_participation')
         .upsert({
@@ -346,7 +341,7 @@ export const OpticalReaderPage: React.FC = () => {
           wrong_count: gradingResult.totalWrong,
           blank_count: gradingResult.totalBlank,
           net_score: gradingResult.totalNet,
-          subject_scores: subjectScoresJson as any,
+          subject_scores: gradingResult.subjects as any,
         }, { onConflict: 'exam_id,user_id' });
 
       if (error) throw error;
@@ -363,14 +358,14 @@ export const OpticalReaderPage: React.FC = () => {
     setScanResult(null);
     setGradingResult(null);
     setMatchedStudent(null);
-    setOcrProgress(0);
+    setProcessingStage('');
     stopCamera();
   };
 
   if (!canCreateContent) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Card className="p-8 text-center max-w-md">
+        <Card className="p-8 text-center max-w-md animate-scale-in">
           <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Erişim Engellendi</h2>
           <p className="text-muted-foreground">Bu sayfaya yalnızca öğretmen ve yöneticiler erişebilir.</p>
@@ -380,27 +375,31 @@ export const OpticalReaderPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto animate-fade-in">
-      <div>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="animate-slide-down">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-            <ScanLine className="w-5 h-5 text-primary" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-sm animate-pulse-soft">
+            <ScanLine className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Optik Okuyucu</h1>
-            <p className="text-muted-foreground">LGS optik formlarını tarayın ve otomatik notlandırın (90 soru)</p>
+            <h1 className="text-3xl font-bold tracking-tight">Optik Okuyucu</h1>
+            <p className="text-muted-foreground flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              AI destekli LGS optik form tarayıcı (90 soru)
+            </p>
           </div>
         </div>
       </div>
 
       {/* Step 1: Configuration */}
-      <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4">
+      <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <h3 className="font-semibold text-lg flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">1</span>
+          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs flex items-center justify-center font-bold shadow-sm">1</span>
           Sınav Seçimi
         </h3>
         <Select value={selectedExamId} onValueChange={setSelectedExamId}>
-          <SelectTrigger>
+          <SelectTrigger className="h-11">
             <SelectValue placeholder="Sınav seçin..." />
           </SelectTrigger>
           <SelectContent>
@@ -412,17 +411,25 @@ export const OpticalReaderPage: React.FC = () => {
       </Card>
 
       {/* Step 2: LGS Answer Key by Subject */}
-      <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4">
+      <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
         <h3 className="font-semibold text-lg flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">2</span>
+          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs flex items-center justify-center font-bold shadow-sm">2</span>
           Cevap Anahtarı (LGS - 90 Soru)
         </h3>
         
-        {LGS_SUBJECTS.map(subject => (
-          <div key={subject.key} className="space-y-2">
+        {LGS_SUBJECTS.map((subject, idx) => (
+          <div key={subject.key} className="space-y-2 animate-fade-in" style={{ animationDelay: `${300 + idx * 50}ms` }}>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">{subject.label}</span>
-              <span className="text-xs text-muted-foreground">({subject.count} soru, x{subject.coefficient} katsayı)</span>
+              <span className={cn(
+                "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                subject.coefficient === 4 
+                  ? "bg-primary/10 text-primary" 
+                  : "bg-muted text-muted-foreground"
+              )}>
+                ×{subject.coefficient} katsayı
+              </span>
+              <span className="text-xs text-muted-foreground">({subject.count} soru)</span>
             </div>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
               {Array.from({ length: subject.count }, (_, i) => subject.start + i).map(qNum => (
@@ -446,19 +453,20 @@ export const OpticalReaderPage: React.FC = () => {
       </Card>
 
       {/* Step 3: Capture */}
-      <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4">
+      <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4 animate-slide-up" style={{ animationDelay: '300ms' }}>
         <h3 className="font-semibold text-lg flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">3</span>
+          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs flex items-center justify-center font-bold shadow-sm">3</span>
           Optik Form Tarama
+          <Zap className="w-4 h-4 text-primary ml-1" />
         </h3>
 
         {!capturedImage && !cameraActive && (
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={startCamera} variant="apple" className="gap-2 flex-1">
-              <Camera className="w-4 h-4" /> Kamerayı Aç
+            <Button onClick={startCamera} variant="apple" className="gap-2 flex-1 h-12 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
+              <Camera className="w-5 h-5" /> Kamerayı Aç
             </Button>
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="gap-2 flex-1">
-              <Upload className="w-4 h-4" /> Dosya Yükle
+            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="gap-2 flex-1 h-12 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
+              <Upload className="w-5 h-5" /> Dosya Yükle
             </Button>
             <input
               ref={fileInputRef}
@@ -472,8 +480,8 @@ export const OpticalReaderPage: React.FC = () => {
         )}
 
         {cameraActive && (
-          <div className="space-y-3">
-            <div className="relative rounded-xl overflow-hidden bg-black aspect-[4/3]">
+          <div className="space-y-3 animate-scale-in">
+            <div className="relative rounded-2xl overflow-hidden bg-black aspect-[4/3] shadow-lg">
               <video
                 ref={videoRef}
                 className="w-full h-full object-cover"
@@ -481,18 +489,23 @@ export const OpticalReaderPage: React.FC = () => {
                 playsInline
                 muted
               />
-              <div className="absolute inset-0 border-2 border-primary/30 rounded-xl pointer-events-none">
-                <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-primary" />
-                <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-primary" />
-                <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-primary" />
-                <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-primary" />
+              {/* Scanning overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-4 border-2 border-primary/40 rounded-xl">
+                  <div className="absolute top-0 left-0 w-10 h-10 border-l-3 border-t-3 border-primary rounded-tl-lg" />
+                  <div className="absolute top-0 right-0 w-10 h-10 border-r-3 border-t-3 border-primary rounded-tr-lg" />
+                  <div className="absolute bottom-0 left-0 w-10 h-10 border-l-3 border-b-3 border-primary rounded-bl-lg" />
+                  <div className="absolute bottom-0 right-0 w-10 h-10 border-r-3 border-b-3 border-primary rounded-br-lg" />
+                </div>
+                {/* Scanning line animation */}
+                <div className="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line" />
               </div>
             </div>
             <div className="flex gap-3">
-              <Button onClick={capturePhoto} variant="apple" className="gap-2 flex-1">
+              <Button onClick={capturePhoto} variant="apple" className="gap-2 flex-1 h-11">
                 <Camera className="w-4 h-4" /> Fotoğraf Çek
               </Button>
-              <Button onClick={stopCamera} variant="outline" className="gap-2">
+              <Button onClick={stopCamera} variant="outline" className="gap-2 h-11">
                 <X className="w-4 h-4" /> İptal
               </Button>
             </div>
@@ -500,27 +513,33 @@ export const OpticalReaderPage: React.FC = () => {
         )}
 
         {capturedImage && (
-          <div className="space-y-3">
-            <div className="relative rounded-xl overflow-hidden bg-muted">
+          <div className="space-y-3 animate-scale-in">
+            <div className="relative rounded-2xl overflow-hidden bg-muted shadow-lg">
               <img src={capturedImage} alt="Captured" className="w-full max-h-[400px] object-contain" />
+              {isProcessing && (
+                <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center animate-pulse">
+                    <Sparkles className="w-8 h-8 text-primary animate-spin-slow" />
+                  </div>
+                  <p className="text-sm font-medium text-foreground">{processingStage}</p>
+                  <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full animate-indeterminate" />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex gap-3">
-              <Button onClick={processImage} variant="apple" className="gap-2 flex-1" disabled={isProcessing}>
+              <Button onClick={processImage} variant="apple" className="gap-2 flex-1 h-11" disabled={isProcessing}>
                 {isProcessing ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> İşleniyor... %{ocrProgress}</>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> AI Analiz Ediyor...</>
                 ) : (
-                  <><Eye className="w-4 h-4" /> OCR ile Tara</>
+                  <><Sparkles className="w-4 h-4" /> AI ile Tara</>
                 )}
               </Button>
-              <Button onClick={resetAll} variant="outline" className="gap-2">
+              <Button onClick={resetAll} variant="outline" className="gap-2 h-11">
                 <RotateCcw className="w-4 h-4" /> Yeniden
               </Button>
             </div>
-            {isProcessing && (
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${ocrProgress}%` }} />
-              </div>
-            )}
           </div>
         )}
 
@@ -531,17 +550,17 @@ export const OpticalReaderPage: React.FC = () => {
       {scanResult && (
         <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4 animate-slide-up">
           <h3 className="font-semibold text-lg flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">4</span>
+            <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs flex items-center justify-center font-bold shadow-sm">4</span>
             Sonuçları Doğrula
           </h3>
 
           {/* Detected name & matched student */}
           <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Tespit Edilen İsim (OCR)</label>
-              <Input value={scanResult.detectedName || '(tespit edilemedi)'} readOnly className="bg-muted" />
+            <div className="animate-fade-in">
+              <label className="text-sm font-medium mb-2 block">Tespit Edilen İsim (AI)</label>
+              <Input value={scanResult.detectedName || '(tespit edilemedi)'} readOnly className="bg-muted h-11" />
             </div>
-            <div>
+            <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
               <label className="text-sm font-medium mb-2 block">Eşleşen Öğrenci</label>
               <Select
                 value={matchedStudent?.user_id || ''}
@@ -550,7 +569,7 @@ export const OpticalReaderPage: React.FC = () => {
                   setMatchedStudent(p || null);
                 }}
               >
-                <SelectTrigger className={matchedStudent ? 'border-green-500' : 'border-destructive'}>
+                <SelectTrigger className={cn("h-11", matchedStudent ? 'border-green-500 ring-1 ring-green-500/20' : 'border-destructive')}>
                   <SelectValue placeholder="Öğrenci seçin..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -583,7 +602,7 @@ export const OpticalReaderPage: React.FC = () => {
                             });
                           }}
                         >
-                          <SelectTrigger className={cn("h-7 text-xs px-1", answer ? 'border-primary' : 'border-muted')}>
+                          <SelectTrigger className={cn("h-7 text-xs px-1 transition-colors", answer ? 'border-primary bg-primary/5' : 'border-muted')}>
                             <SelectValue placeholder="-" />
                           </SelectTrigger>
                           <SelectContent>
@@ -601,7 +620,7 @@ export const OpticalReaderPage: React.FC = () => {
             ))}
           </div>
 
-          <Button onClick={gradeAnswers} variant="apple" className="w-full gap-2">
+          <Button onClick={gradeAnswers} variant="apple" className="w-full gap-2 h-11 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]">
             <CheckCircle className="w-4 h-4" /> Notlandır
           </Button>
         </Card>
@@ -609,52 +628,73 @@ export const OpticalReaderPage: React.FC = () => {
 
       {/* Step 5: Grading Result */}
       {gradingResult && (
-        <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-4 animate-slide-up">
+        <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm space-y-5 animate-slide-up">
           <h3 className="font-semibold text-lg flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">5</span>
+            <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground text-xs flex items-center justify-center font-bold shadow-sm">5</span>
             Notlandırma Sonucu
           </h3>
 
           {/* LGS Total Score */}
-          <div className="text-center p-4 rounded-2xl bg-primary/10 dark:bg-primary/20">
-            <p className="text-4xl font-bold text-primary">{gradingResult.lgsPuan.toFixed(1)}</p>
-            <p className="text-sm text-muted-foreground">LGS Puan (500 üzerinden)</p>
+          <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 dark:from-primary/25 dark:to-primary/10 animate-scale-in">
+            <p className="text-5xl font-bold text-primary tracking-tight">{gradingResult.lgsPuan.toFixed(1)}</p>
+            <p className="text-sm text-muted-foreground mt-1">LGS Puan (500 üzerinden)</p>
           </div>
 
           {/* Overall stats */}
           <div className="grid grid-cols-4 gap-3">
-            <div className="text-center p-3 rounded-xl bg-green-500/10 dark:bg-green-500/20">
-              <p className="text-xl font-bold text-green-600 dark:text-green-400">{gradingResult.totalCorrect}</p>
-              <p className="text-xs text-muted-foreground">Doğru</p>
-            </div>
-            <div className="text-center p-3 rounded-xl bg-red-500/10 dark:bg-red-500/20">
-              <p className="text-xl font-bold text-red-600 dark:text-red-400">{gradingResult.totalWrong}</p>
-              <p className="text-xs text-muted-foreground">Yanlış</p>
-            </div>
-            <div className="text-center p-3 rounded-xl bg-muted/50">
-              <p className="text-xl font-bold text-muted-foreground">{gradingResult.totalBlank}</p>
-              <p className="text-xs text-muted-foreground">Boş</p>
-            </div>
-            <div className="text-center p-3 rounded-xl bg-primary/10 dark:bg-primary/20">
-              <p className="text-xl font-bold text-primary">{gradingResult.weightedNet.toFixed(2)}</p>
-              <p className="text-xs text-muted-foreground">Ağırlıklı Net</p>
-            </div>
+            {[
+              { label: 'Doğru', value: gradingResult.totalCorrect, color: 'green' },
+              { label: 'Yanlış', value: gradingResult.totalWrong, color: 'red' },
+              { label: 'Boş', value: gradingResult.totalBlank, color: 'gray' },
+              { label: 'Ağırlıklı Net', value: gradingResult.weightedNet.toFixed(2), color: 'primary' },
+            ].map((stat, i) => (
+              <div 
+                key={stat.label} 
+                className={cn(
+                  "text-center p-3 rounded-xl transition-transform hover:scale-105 animate-fade-in",
+                  stat.color === 'green' && 'bg-green-500/10 dark:bg-green-500/20',
+                  stat.color === 'red' && 'bg-red-500/10 dark:bg-red-500/20',
+                  stat.color === 'gray' && 'bg-muted/50',
+                  stat.color === 'primary' && 'bg-primary/10 dark:bg-primary/20',
+                )}
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <p className={cn(
+                  "text-xl font-bold",
+                  stat.color === 'green' && 'text-green-600 dark:text-green-400',
+                  stat.color === 'red' && 'text-red-600 dark:text-red-400',
+                  stat.color === 'gray' && 'text-muted-foreground',
+                  stat.color === 'primary' && 'text-primary',
+                )}>{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
           </div>
 
           {/* Per-subject breakdown */}
           <div className="space-y-2">
             <p className="text-sm font-semibold">Ders Bazlı Analiz</p>
             <div className="grid gap-2">
-              {LGS_SUBJECTS.map(subject => {
+              {LGS_SUBJECTS.map((subject, i) => {
                 const s = gradingResult.subjects[subject.key];
                 if (!s) return null;
+                const percentage = s.net / subject.count * 100;
                 return (
-                  <div key={subject.key} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 dark:bg-muted/10">
-                    <span className="text-sm font-medium w-28 shrink-0">{subject.label}</span>
-                    <span className="text-xs text-green-600">D:{s.correct}</span>
-                    <span className="text-xs text-red-600">Y:{s.wrong}</span>
-                    <span className="text-xs text-muted-foreground">B:{s.blank}</span>
-                    <span className="text-xs font-bold text-primary ml-auto">Net: {s.net.toFixed(2)} (×{subject.coefficient})</span>
+                  <div 
+                    key={subject.key} 
+                    className="relative flex items-center gap-3 p-3 rounded-xl bg-muted/30 dark:bg-muted/10 overflow-hidden animate-fade-in"
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    {/* Progress bar background */}
+                    <div 
+                      className="absolute inset-y-0 left-0 bg-primary/5 dark:bg-primary/10 transition-all duration-1000 ease-out"
+                      style={{ width: `${Math.max(0, percentage)}%` }}
+                    />
+                    <span className="text-sm font-medium w-28 shrink-0 relative z-10">{subject.label}</span>
+                    <span className="text-xs text-green-600 dark:text-green-400 relative z-10">D:{s.correct}</span>
+                    <span className="text-xs text-red-600 dark:text-red-400 relative z-10">Y:{s.wrong}</span>
+                    <span className="text-xs text-muted-foreground relative z-10">B:{s.blank}</span>
+                    <span className="text-xs font-bold text-primary ml-auto relative z-10">Net: {s.net.toFixed(2)} (×{subject.coefficient})</span>
                   </div>
                 );
               })}
@@ -663,15 +703,16 @@ export const OpticalReaderPage: React.FC = () => {
 
           {/* Detailed answer grid */}
           <div className="grid grid-cols-5 sm:grid-cols-10 gap-1">
-            {gradingResult.answers.map(a => (
+            {gradingResult.answers.map((a, i) => (
               <div
                 key={a.question}
                 className={cn(
-                  "text-center p-1 rounded-md text-xs font-medium",
+                  "text-center p-1 rounded-lg text-xs font-medium transition-all hover:scale-110 animate-fade-in",
                   a.status === 'correct' && 'bg-green-500/10 text-green-600 dark:text-green-400',
                   a.status === 'wrong' && 'bg-red-500/10 text-red-600 dark:text-red-400',
                   a.status === 'blank' && 'bg-muted text-muted-foreground',
                 )}
+                style={{ animationDelay: `${i * 10}ms` }}
               >
                 <div className="text-[9px] opacity-60">{a.question}</div>
                 <div>{a.selected}</div>
@@ -679,7 +720,12 @@ export const OpticalReaderPage: React.FC = () => {
             ))}
           </div>
 
-          <Button onClick={saveResult} variant="apple" className="w-full gap-2" disabled={isSaving || !selectedExamId || !matchedStudent}>
+          <Button 
+            onClick={saveResult} 
+            variant="apple" 
+            className="w-full gap-2 h-12 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]" 
+            disabled={isSaving || !selectedExamId || !matchedStudent}
+          >
             {isSaving ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Kaydediliyor...</>
             ) : (
