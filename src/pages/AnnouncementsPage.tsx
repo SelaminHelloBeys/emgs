@@ -19,6 +19,9 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
+import { VerificationTick } from '@/components/VerificationTick';
+import { getVerificationTick } from '@/types/user';
+import { UserRole } from '@/contexts/AuthContext';
 import {
   Megaphone,
   Bell,
@@ -178,6 +181,9 @@ export const AnnouncementsPage: React.FC = () => {
           {announcements.map((announcement) => {
             const config = typeConfig[announcement.type];
             const Icon = config.icon;
+            const creatorTickType = announcement.creator_role 
+              ? getVerificationTick(announcement.creator_role as UserRole, announcement.creator_verified || false)
+              : 'none';
 
             return (
               <Card 
@@ -203,7 +209,8 @@ export const AnnouncementsPage: React.FC = () => {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Megaphone className="w-4 h-4" />
-                        {announcement.creator_name}
+                        <span className="font-medium text-foreground">{announcement.creator_name}</span>
+                        <VerificationTick tickType={creatorTickType} size="sm" />
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
