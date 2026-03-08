@@ -41,6 +41,12 @@ const modeConfig: Record<string, {
     icon: <ShieldAlert className="h-5 w-5" />,
     color: 'bg-red-500',
   },
+  tablet_mode: {
+    label: 'Tablet Modu',
+    description: 'Tüm arayüz elemanları büyütülür, kolay okunur ve ulaşılır hale gelir.',
+    icon: <Tablet className="h-5 w-5" />,
+    color: 'bg-purple-500',
+  },
 };
 
 export const PlatformModesPanel: React.FC = () => {
