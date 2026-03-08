@@ -162,13 +162,14 @@ export const SettingsPage: React.FC = () => {
     }
   }, [user, role]);
 
-  // Fetch teacher parent code
+  // Fetch teacher parent code (admin-assigned)
   useEffect(() => {
     if (user && role === 'ogretmen') {
       supabase
         .from('teacher_parent_codes')
         .select('code')
         .eq('teacher_user_id', user.id)
+        .eq('is_used', false)
         .maybeSingle()
         .then(({ data }) => {
           if (data) setTeacherParentCode(data.code);
