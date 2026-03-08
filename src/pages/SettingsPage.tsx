@@ -135,7 +135,6 @@ export const SettingsPage: React.FC = () => {
   const [showParentCode, setShowParentCode] = useState(false);
   const [parentCode, setParentCode] = useState<string | null>(null);
   const [teacherParentCode, setTeacherParentCode] = useState<string | null>(null);
-  const [isGeneratingTeacherCode, setIsGeneratingTeacherCode] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
   const [passwordForm, setPasswordForm] = useState({
