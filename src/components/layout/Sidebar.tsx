@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
-import { LegalDisclaimerMini } from '@/components/LegalDisclaimer';
+import { cn } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
