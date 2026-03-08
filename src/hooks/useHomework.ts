@@ -69,8 +69,18 @@ export const useHomework = () => {
 
     const submissionsMap = new Map(submissionsData?.map(s => [s.homework_id, s]) || []);
 
+    // Check if user is admin/teacher - they see all homework
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    const isAdminOrTeacher = roleData?.role && ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'ogretmen'].includes(roleData.role);
+
     const formattedHomework = (homeworkData || [])
       .filter(hw => {
+        if (isAdminOrTeacher) return true;
         if (profile?.grade && hw.grade !== profile.grade) return false;
         if (hw.class_section && profile?.class && hw.class_section !== profile.class) return false;
         return true;
