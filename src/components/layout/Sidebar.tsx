@@ -20,6 +20,7 @@ import {
   PenTool,
   Trophy,
   ScanLine,
+  Layout,
 } from 'lucide-react';
 
 interface SidebarProps {
