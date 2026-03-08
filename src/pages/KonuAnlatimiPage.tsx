@@ -146,10 +146,10 @@ export const KonuAnlatimiPage: React.FC = () => {
     return (
       <div className="space-y-8">
         <div className="text-center max-w-2xl mx-auto animate-fade-in">
-          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-blue-600 dark:to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-primary to-blue-600 dark:to-blue-400 bg-clip-text text-transparent">
             Konu Anlatımı
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-lg">
             Ders seçerek konu anlatım videolarına ulaşın
           </p>
         </div>
