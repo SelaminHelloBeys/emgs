@@ -164,19 +164,21 @@ export const AppLayout: React.FC = () => {
   // Check per-page maintenance (admins bypass)
   const maintenancePage = !isAdmin ? isPageInMaintenance(location.pathname) : undefined;
 
+  const isTabletMode = platformModes.tablet_mode;
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav onMenuClick={() => setMobileNavOpen(true)} />
-      <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />
+      {!isTabletMode && <MobileNav open={mobileNavOpen} onOpenChange={setMobileNavOpen} />}
       <div className="flex">
-        <Sidebar collapsed={sidebarCollapsed} onCollapse={setSidebarCollapsed} />
+        {!isTabletMode && <Sidebar collapsed={sidebarCollapsed} onCollapse={setSidebarCollapsed} />}
         <main 
           className={cn(
             "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 p-3 sm:p-6 lg:p-8",
-            sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
+            !isTabletMode && (sidebarCollapsed ? "lg:ml-20" : "lg:ml-64")
           )}
         >
-          <div className="max-w-7xl mx-auto animate-fade-in">
+          <div className={cn("mx-auto animate-fade-in", isTabletMode ? "max-w-full px-2" : "max-w-7xl")}>
             {maintenancePage ? (
               <PageMaintenanceScreen 
                 pageName={maintenancePage.page_name} 
@@ -188,6 +190,7 @@ export const AppLayout: React.FC = () => {
           </div>
         </main>
       </div>
+      {isTabletMode && <TabletBottomNav />}
     </div>
   );
 };
