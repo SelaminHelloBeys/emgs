@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import emgLogo from '@/assets/emg-logo.png';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { roleLabels, roleDescriptions } from '@/types/user';
 import { Button } from '@/components/ui/button';
@@ -298,11 +299,13 @@ export const AuthPage: React.FC = () => {
         {step === 'credentials' && (
           <div key={`cred-${animKey}`} className="auth-step-enter text-center">
             <div className="mb-10">
-              <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="relative w-24 h-24 mx-auto mb-6">
                 <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-xl animate-pulse-soft" />
-                <div className="relative w-20 h-20 rounded-3xl bg-primary shadow-apple-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-3xl">E</span>
-                </div>
+                <img 
+                  src={emgLogo} 
+                  alt="EMG Logo" 
+                  className="relative w-24 h-24 object-contain drop-shadow-lg"
+                />
               </div>
               <h1 className="text-4xl font-bold mb-1 tracking-tight">EMG</h1>
               <p className="text-lg text-muted-foreground">Eğitim Materyal Geçidi</p>
