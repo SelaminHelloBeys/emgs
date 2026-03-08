@@ -426,6 +426,33 @@ export type Database = {
           },
         ]
       }
+      teacher_parent_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_used: boolean
+          parent_user_id: string | null
+          teacher_user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          parent_user_id?: string | null
+          teacher_user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          parent_user_id?: string | null
+          teacher_user_id?: string
+        }
+        Relationships: []
+      }
       trial_exams: {
         Row: {
           cover_image_url: string | null
