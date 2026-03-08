@@ -21,6 +21,7 @@ import {
   Trophy,
   ScanLine,
   Layout,
+  Headphones,
 } from 'lucide-react';
 
 interface SidebarProps {
