@@ -199,7 +199,7 @@ export const KonuAnlatimiPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">{selectedSubject.icon}</span>
-              <h1 className={cn("text-3xl font-bold", selectedSubject.textColor)}>{selectedSubject.name}</h1>
+              <h1 className={cn("text-xl sm:text-3xl font-bold", selectedSubject.textColor)}>{selectedSubject.name}</h1>
             </div>
             <p className="text-muted-foreground">Ünite seçerek derslere göz atın</p>
           </div>
