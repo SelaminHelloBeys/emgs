@@ -163,6 +163,20 @@ export const SettingsPage: React.FC = () => {
     }
   }, [user, role]);
 
+  // Fetch teacher parent code
+  useEffect(() => {
+    if (user && role === 'ogretmen') {
+      supabase
+        .from('teacher_parent_codes')
+        .select('code')
+        .eq('teacher_user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setTeacherParentCode(data.code);
+        });
+    }
+  }, [user, role]);
+
   // Fetch verification status
   useEffect(() => {
     if (user) {
