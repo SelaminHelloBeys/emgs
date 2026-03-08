@@ -23,6 +23,7 @@ import { BadgesPage } from "./pages/BadgesPage";
 import { ModerationPage } from "./pages/ModerationPage";
 import { OpticalReaderPage } from "./pages/OpticalReaderPage";
 import { ParentTrackingPage } from "./pages/ParentTrackingPage";
+import { PageAccessPage } from "./pages/PageAccessPage";
 import NotFound from "./pages/NotFound";
 
 // Layout
