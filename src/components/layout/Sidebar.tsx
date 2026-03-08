@@ -109,7 +109,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
               <p className="text-sm font-medium truncate">{profile.school_name}</p>
             </div>
           )}
-          {!collapsed && <LegalDisclaimerMini />}
         </div>
       </div>
     </aside>
