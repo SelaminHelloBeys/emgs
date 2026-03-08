@@ -248,14 +248,14 @@ export const SettingsPage: React.FC = () => {
   const tickType = role ? getVerificationTick(role, isVerified) : 'none';
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-6 sm:space-y-8 max-w-4xl">
       <div className="animate-slide-up">
-        <h1 className="text-3xl font-bold mb-2">Ayarlar</h1>
-        <p className="text-muted-foreground">Hesap ve uygulama ayarları</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Ayarlar</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Hesap ve uygulama ayarları</p>
       </div>
 
-      <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
+      <Tabs defaultValue="account" className="space-y-4 sm:space-y-6">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1 overflow-x-auto max-w-full">
           <TabsTrigger value="account" className="gap-2">
             <User className="w-4 h-4" />
             Hesap
