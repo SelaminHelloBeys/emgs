@@ -35,7 +35,7 @@ import { Search, Trash2, Loader2, User, Shield } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
-const ROLES: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci'];
+const ROLES: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci', 'veli'];
 
 export const UserManagementPanel: React.FC = () => {
   const { users, isLoading, updateUserRole, deleteUser } = useUserManagement();
