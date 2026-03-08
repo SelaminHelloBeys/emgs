@@ -237,6 +237,31 @@ export const SettingsPage: React.FC = () => {
     setIsLoading(false);
   };
 
+  const handleGenerateTeacherCode = async () => {
+    if (!user) return;
+    setIsGeneratingTeacherCode(true);
+    
+    // Generate cryptographic code
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 12; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const formattedCode = code.slice(0, 4) + '-' + code.slice(4, 8) + '-' + code.slice(8, 12);
+
+    const { error } = await supabase
+      .from('teacher_parent_codes')
+      .insert({ teacher_user_id: user.id, code: formattedCode } as any);
+
+    if (error) {
+      toast.error('Kod oluşturulamadı');
+    } else {
+      setTeacherParentCode(formattedCode);
+      toast.success('Veli kodu başarıyla oluşturuldu!');
+    }
+    setIsGeneratingTeacherCode(false);
+  };
+
   const handleLanguageChange = (value: Language) => {
     setLanguage(value);
     localStorage.setItem('app_language', value);
