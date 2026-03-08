@@ -9,6 +9,7 @@ import { ContentManagementPanel } from '@/components/admin/ContentManagementPane
 import { NotificationManagementPanel } from '@/components/admin/NotificationManagementPanel';
 import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPanel';
 import { InviteCodePanel } from '@/components/admin/InviteCodePanel';
+import { VerificationManagementPanel } from '@/components/admin/VerificationManagementPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -24,6 +25,7 @@ import {
   CheckCircle,
   Info,
   KeyRound,
+  BadgeCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -34,7 +36,7 @@ interface LogEntry {
   message: string;
 }
 
-const TABS = ['overview', 'users', 'codes', 'content', 'notifications', 'platform', 'exams'] as const;
+const TABS = ['overview', 'users', 'codes', 'verification', 'content', 'notifications', 'platform', 'exams'] as const;
 type TabValue = typeof TABS[number];
 
 export const ModerationPage: React.FC = () => {
@@ -118,6 +120,10 @@ export const ModerationPage: React.FC = () => {
             <KeyRound className="w-4 h-4" />
             Davet Kodları
           </TabsTrigger>
+          <TabsTrigger value="verification" className="gap-2">
+            <BadgeCheck className="w-4 h-4" />
+            Doğrulama
+          </TabsTrigger>
           <TabsTrigger value="content" className="gap-2">
             <Video className="w-4 h-4" />
             İçerikler
@@ -175,6 +181,10 @@ export const ModerationPage: React.FC = () => {
 
         <TabsContent value="codes" className="mt-6 animate-fade-in">
           <InviteCodePanel />
+        </TabsContent>
+
+        <TabsContent value="verification" className="mt-6 animate-fade-in">
+          <VerificationManagementPanel />
         </TabsContent>
 
         <TabsContent value="content" className="mt-6 animate-fade-in">

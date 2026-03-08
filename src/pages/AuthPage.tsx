@@ -19,18 +19,22 @@ import {
   User,
   Building2,
   GraduationCap,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-const roleIcons: Record<'ogretmen' | 'ogrenci', React.ElementType> = {
+const roleIcons: Record<'ogretmen' | 'ogrenci' | 'veli', React.ElementType> = {
   ogretmen: BookOpen,
   ogrenci: Backpack,
+  veli: Users,
 };
 
-const roleColors: Record<'ogretmen' | 'ogrenci', string> = {
+const roleColors: Record<'ogretmen' | 'ogrenci' | 'veli', string> = {
   ogretmen: 'bg-apple-orange/10 text-apple-orange',
   ogrenci: 'bg-primary/10 text-primary',
+  veli: 'bg-amber-500/10 text-amber-500',
 };
 
 const schools = [
@@ -42,21 +46,16 @@ const classes = [
   '8-F', '8-G', '8-H', '8-I', '8-J',
 ];
 
-type AuthStep = 'credentials' | 'role' | 'school' | 'class' | 'teacher-verify' | 'email-sent';
+type AuthStep = 'credentials' | 'role' | 'school' | 'class' | 'teacher-verify' | 'parent-verify' | 'email-sent';
 
 /* Animated background blobs */
 const AuthBackground = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-    {/* Gradient base */}
-    <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-background to-apple-purple/[0.04]" />
-    
-    {/* Floating blobs */}
+    <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-background to-accent/[0.04]" />
     <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/[0.07] blur-3xl animate-float-slow" />
-    <div className="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-apple-purple/[0.06] blur-3xl animate-float-medium" />
-    <div className="absolute -bottom-24 left-1/4 w-72 h-72 rounded-full bg-apple-teal/[0.05] blur-3xl animate-float-fast" />
+    <div className="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-accent/[0.06] blur-3xl animate-float-medium" />
+    <div className="absolute -bottom-24 left-1/4 w-72 h-72 rounded-full bg-primary/[0.05] blur-3xl animate-float-fast" />
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/[0.02] blur-3xl" />
-    
-    {/* Grid pattern */}
     <div 
       className="absolute inset-0 opacity-[0.015]"
       style={{
@@ -86,12 +85,13 @@ const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; total
   </div>
 );
 
-const stepOrder: AuthStep[] = ['credentials', 'role', 'teacher-verify', 'school', 'class', 'email-sent'];
+const stepOrder: AuthStep[] = ['credentials', 'role', 'teacher-verify', 'parent-verify', 'school', 'class', 'email-sent'];
 const getStepIndex = (step: AuthStep) => {
   const map: Record<AuthStep, number> = {
     'credentials': 0,
     'role': 1,
     'teacher-verify': 2,
+    'parent-verify': 2,
     'school': 2,
     'class': 3,
     'email-sent': 4,
@@ -105,10 +105,11 @@ export const AuthPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'ogretmen' | 'ogrenci' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'ogretmen' | 'ogrenci' | 'veli' | null>(null);
   const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [schoolCode, setSchoolCode] = useState('');
+  const [parentCode, setParentCode] = useState('');
   const [verificationError, setVerificationError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [animKey, setAnimKey] = useState(0);
@@ -125,7 +126,6 @@ export const AuthPage: React.FC = () => {
   } = useAuth();
   const navigate = useNavigate();
 
-  // Trigger re-animation on step change
   useEffect(() => {
     setAnimKey(prev => prev + 1);
   }, [step]);
@@ -173,14 +173,16 @@ export const AuthPage: React.FC = () => {
     setStep('role');
   };
 
-  const handleRoleSelect = (role: 'ogretmen' | 'ogrenci') => {
+  const handleRoleSelect = (role: 'ogretmen' | 'ogrenci' | 'veli') => {
     setSelectedRole(role);
     setVerificationError('');
   };
 
   const handleContinueAfterRole = () => {
     if (!selectedRole) return;
-    setStep(selectedRole === 'ogretmen' ? 'teacher-verify' : 'school');
+    if (selectedRole === 'ogretmen') setStep('teacher-verify');
+    else if (selectedRole === 'veli') setStep('parent-verify');
+    else setStep('school');
   };
 
   const handleTeacherVerification = () => {
@@ -188,6 +190,35 @@ export const AuthPage: React.FC = () => {
       setVerificationError('Geçersiz okul kodu. Öğretmen olarak kayıt olamazsınız.');
       return;
     }
+    setStep('school');
+  };
+
+  const handleParentVerification = async () => {
+    if (!parentCode.trim()) {
+      setVerificationError('Veli kodu gereklidir');
+      return;
+    }
+
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('parent_codes')
+      .select('*')
+      .eq('code', parentCode.trim().toUpperCase())
+      .maybeSingle();
+
+    setIsLoading(false);
+
+    if (error || !data) {
+      setVerificationError('Geçersiz veli kodu. Lütfen öğrencinizden doğru kodu isteyin.');
+      return;
+    }
+
+    if (data.is_used) {
+      setVerificationError('Bu veli kodu zaten kullanılmış.');
+      return;
+    }
+
+    // Code is valid, proceed to registration
     setStep('school');
   };
 
@@ -212,7 +243,24 @@ export const AuthPage: React.FC = () => {
     setIsLoading(false);
     if (error) { toast.error(error.message || 'Kayıt olurken hata oluştu'); return; }
     toast.success('Kayıt başarılı! Giriş yapılıyor...');
-    // Auto-confirm enabled, sign in directly
+
+    // For veli role, mark parent code as used after successful signup
+    if (selectedRole === 'veli' && parentCode) {
+      const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInData?.user) {
+        // Update role to veli
+        await supabase.from('user_roles').delete().eq('user_id', signInData.user.id);
+        await supabase.from('user_roles').insert({ user_id: signInData.user.id, role: 'veli' as any });
+        // Mark parent code as used
+        await supabase.from('parent_codes').update({ 
+          is_used: true, 
+          parent_user_id: signInData.user.id 
+        } as any).eq('code', parentCode.trim().toUpperCase());
+      }
+      return;
+    }
+
+    // Auto sign in
     const { error: signInError } = await signIn(email, password);
     if (signInError) {
       toast.error('Giriş yapılamadı, lütfen tekrar deneyin');
@@ -221,7 +269,7 @@ export const AuthPage: React.FC = () => {
     }
   };
 
-  const roles: ('ogretmen' | 'ogrenci')[] = ['ogrenci', 'ogretmen'];
+  const roles: ('ogretmen' | 'ogrenci' | 'veli')[] = ['ogrenci', 'ogretmen', 'veli'];
 
   if (authLoading) {
     return (
@@ -239,19 +287,16 @@ export const AuthPage: React.FC = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
       <AuthBackground />
       
-      {/* Theme toggle */}
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
       </div>
       <div className="w-full max-w-lg relative z-10">
-        {/* Step indicator for signup */}
         {mode === 'signup' && step !== 'credentials' && step !== 'email-sent' && (
           <StepIndicator currentStep={currentStepIndex} totalSteps={totalSteps} />
         )}
 
         {step === 'credentials' && (
           <div key={`cred-${animKey}`} className="auth-step-enter text-center">
-            {/* Logo with glow */}
             <div className="mb-10">
               <div className="relative w-20 h-20 mx-auto mb-6">
                 <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-xl animate-pulse-soft" />
@@ -263,7 +308,6 @@ export const AuthPage: React.FC = () => {
               <p className="text-lg text-muted-foreground">Eğitim Materyal Geçidi</p>
             </div>
 
-            {/* Auth Card */}
             <Card variant="elevated" className="max-w-md mx-auto p-8 glass-card border-border/30">
               <h2 className="text-2xl font-semibold mb-1">
                 {mode === 'login' ? 'Hoş Geldiniz' : 'Hesap Oluştur'}
@@ -274,7 +318,6 @@ export const AuthPage: React.FC = () => {
                   : 'Yeni bir hesap oluşturun'}
               </p>
 
-              {/* Google OAuth */}
               <Button
                 variant="outline"
                 size="xl"
@@ -290,7 +333,6 @@ export const AuthPage: React.FC = () => {
                 </svg>
                 Google ile Devam Et
               </Button>
-
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
@@ -399,7 +441,7 @@ export const AuthPage: React.FC = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
               {roles.map((role, index) => {
                 const Icon = roleIcons[role];
                 const isSelected = selectedRole === role;
@@ -505,6 +547,59 @@ export const AuthPage: React.FC = () => {
           </div>
         )}
 
+        {step === 'parent-verify' && (
+          <div key={`parent-${animKey}`} className="auth-step-enter">
+            <div className="text-center mb-8">
+              <div className="relative w-16 h-16 mx-auto mb-4">
+                <div className="absolute inset-0 rounded-2xl bg-amber-500/20 blur-lg animate-pulse-soft" />
+                <div className="relative w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                  <Users className="w-8 h-8 text-amber-500" />
+                </div>
+              </div>
+              <h2 className="text-3xl font-bold mb-2 tracking-tight">Veli Doğrulama</h2>
+              <p className="text-muted-foreground text-sm">Öğrencinizden aldığınız veli kodunu girin</p>
+            </div>
+
+            <Card variant="elevated" className="p-8 glass-card border-border/30">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Veli Kodu</label>
+                  <Input
+                    type="text"
+                    placeholder="Örn: A7K3-X9PL-4QWE"
+                    value={parentCode}
+                    onChange={(e) => { setParentCode(e.target.value.toUpperCase()); setVerificationError(''); }}
+                    className="h-12 rounded-xl border-border/50 font-mono tracking-wider text-center text-lg"
+                    maxLength={14}
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                  <p className="text-xs text-muted-foreground">
+                    💡 Veli kodu, öğrencinizin hesap ayarlarında "Veli Kodum" bölümünde bulunur. 
+                    Format: XXXX-XXXX-XXXX
+                  </p>
+                </div>
+
+                {verificationError && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 text-destructive animate-scale-in">
+                    <AlertCircle className="w-5 h-5 shrink-0" />
+                    <p className="text-sm">{verificationError}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <Button variant="ghost" onClick={() => setStep('role')} className="flex-1 rounded-xl">Geri</Button>
+                  <Button variant="apple" onClick={handleParentVerification} disabled={!parentCode || isLoading} className="flex-1 gap-2 rounded-xl">
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    Doğrula <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
         {step === 'school' && (
           <div key={`school-${animKey}`} className="auth-step-enter">
             <div className="text-center mb-8">
@@ -548,7 +643,11 @@ export const AuthPage: React.FC = () => {
             </div>
 
             <div className="flex justify-center gap-3">
-              <Button variant="ghost" onClick={() => setStep(selectedRole === 'ogretmen' ? 'teacher-verify' : 'role')} className="gap-2 rounded-xl">
+              <Button variant="ghost" onClick={() => {
+                if (selectedRole === 'ogretmen') setStep('teacher-verify');
+                else if (selectedRole === 'veli') setStep('parent-verify');
+                else setStep('role');
+              }} className="gap-2 rounded-xl">
                 <ArrowLeft className="w-4 h-4" /> Geri
               </Button>
               <Button variant="apple" size="lg" disabled={!selectedSchool} onClick={handleContinueAfterSchool} className="gap-2 rounded-xl shadow-apple-md hover:shadow-apple-lg transition-all duration-300">
@@ -567,9 +666,13 @@ export const AuthPage: React.FC = () => {
                   <GraduationCap className="w-8 h-8 text-primary" />
                 </div>
               </div>
-              <h2 className="text-3xl font-bold mb-2 tracking-tight">Sınıfınızı Seçin</h2>
+              <h2 className="text-3xl font-bold mb-2 tracking-tight">
+                {selectedRole === 'veli' ? 'Çocuğunuzun Sınıfı' : 'Sınıfınızı Seçin'}
+              </h2>
               <p className="text-muted-foreground text-sm">
-                {selectedRole === 'ogretmen' ? 'Sorumlu olduğunuz sınıfı seçin' : 'Kayıtlı olduğunuz sınıfı seçin'}
+                {selectedRole === 'ogretmen' ? 'Sorumlu olduğunuz sınıfı seçin' : 
+                 selectedRole === 'veli' ? 'Çocuğunuzun sınıfını seçin' : 
+                 'Kayıtlı olduğunuz sınıfı seçin'}
               </p>
             </div>
 
@@ -619,9 +722,9 @@ export const AuthPage: React.FC = () => {
           <div key={`email-${animKey}`} className="auth-step-enter text-center">
             <div className="mb-8">
               <div className="relative w-20 h-20 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-3xl bg-apple-green/20 blur-xl animate-pulse-soft" />
-                <div className="relative w-20 h-20 rounded-3xl bg-apple-green/10 flex items-center justify-center">
-                  <Mail className="w-10 h-10 text-apple-green" />
+                <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-xl animate-pulse-soft" />
+                <div className="relative w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center">
+                  <Mail className="w-10 h-10 text-primary" />
                 </div>
               </div>
               <h2 className="text-3xl font-bold mb-2 tracking-tight">E-postanızı Kontrol Edin</h2>

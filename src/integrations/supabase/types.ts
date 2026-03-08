@@ -271,6 +271,33 @@ export type Database = {
         }
         Relationships: []
       }
+      parent_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_used: boolean
+          parent_user_id: string | null
+          student_user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          parent_user_id?: string | null
+          student_user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          parent_user_id?: string | null
+          student_user_id?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           description: string | null
@@ -518,6 +545,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_verified: boolean
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       video_watch_progress: {
         Row: {
           completed: boolean
@@ -560,6 +614,7 @@ export type Database = {
     Functions: {
       can_create_announcements: { Args: { _user_id: string }; Returns: boolean }
       can_create_content: { Args: { _user_id: string }; Returns: boolean }
+      generate_parent_code: { Args: never; Returns: string }
       get_exam_answers_after_completion: {
         Args: { p_exam_id: string }
         Returns: {
@@ -599,6 +654,7 @@ export type Database = {
         | "rehber"
         | "ogretmen"
         | "ogrenci"
+        | "veli"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -734,6 +790,7 @@ export const Constants = {
         "rehber",
         "ogretmen",
         "ogrenci",
+        "veli",
       ],
     },
   },

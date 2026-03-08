@@ -9,6 +9,7 @@ import { VicePrincipalDashboard } from '@/components/dashboards/VicePrincipalDas
 import { CounselorDashboard } from '@/components/dashboards/CounselorDashboard';
 import { TeacherDashboard } from '@/components/dashboards/TeacherDashboard';
 import { StudentDashboard } from '@/components/dashboards/StudentDashboard';
+import { ParentDashboard } from '@/components/dashboards/ParentDashboard';
 
 const dashboardComponents: Record<UserRole, React.FC> = {
   yonetici: SuperAdminDashboard,
@@ -18,6 +19,7 @@ const dashboardComponents: Record<UserRole, React.FC> = {
   rehber: CounselorDashboard,
   ogretmen: TeacherDashboard,
   ogrenci: StudentDashboard,
+  veli: ParentDashboard,
 };
 
 export const Dashboard: React.FC = () => {
