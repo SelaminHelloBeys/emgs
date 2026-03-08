@@ -27,6 +27,7 @@ import {
   Info,
   KeyRound,
   BadgeCheck,
+  Terminal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
