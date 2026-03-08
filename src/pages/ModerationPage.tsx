@@ -209,6 +209,10 @@ export const ModerationPage: React.FC = () => {
         <TabsContent value="exams" className="mt-6 animate-fade-in">
           <ExamParticipationPanel />
         </TabsContent>
+
+        <TabsContent value="terminal" className="mt-6 animate-fade-in">
+          <AdminTerminal />
+        </TabsContent>
       </Tabs>
     </div>
   );

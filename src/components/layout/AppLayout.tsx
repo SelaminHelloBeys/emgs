@@ -112,6 +112,24 @@ export const AppLayout: React.FC = () => {
     }
   }, [isAuthenticated, user, isLoadingModes, showLoadingScreen]);
 
+  // Apply admin theme and tablet mode classes to html element
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isAdmin) {
+      html.classList.add('admin-theme');
+    } else {
+      html.classList.remove('admin-theme');
+    }
+    if (platformModes.tablet_mode) {
+      html.classList.add('tablet-mode');
+    } else {
+      html.classList.remove('tablet-mode');
+    }
+    return () => {
+      html.classList.remove('admin-theme', 'tablet-mode');
+    };
+  }, [isAdmin, platformModes.tablet_mode]);
+
   if (!isAuthenticated || !user || isLoadingModes || showLoadingScreen) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
@@ -144,24 +162,6 @@ export const AppLayout: React.FC = () => {
 
   // Check per-page maintenance (admins bypass)
   const maintenancePage = !isAdmin ? isPageInMaintenance(location.pathname) : undefined;
-
-  // Apply admin theme and tablet mode classes to html element
-  useEffect(() => {
-    const html = document.documentElement;
-    if (isAdmin) {
-      html.classList.add('admin-theme');
-    } else {
-      html.classList.remove('admin-theme');
-    }
-    if (platformModes.tablet_mode) {
-      html.classList.add('tablet-mode');
-    } else {
-      html.classList.remove('tablet-mode');
-    }
-    return () => {
-      html.classList.remove('admin-theme', 'tablet-mode');
-    };
-  }, [isAdmin, platformModes.tablet_mode]);
 
   return (
     <div className="min-h-screen bg-background">
