@@ -286,6 +286,8 @@
   .glass-card {
     @apply bg-white/90 backdrop-blur-lg rounded-2xl border border-border/50;
     box-shadow: var(--shadow-md);
+    transition: box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .dark .glass-card {
@@ -306,11 +308,14 @@
   /* Apple-style focus ring */
   .focus-ring {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
   
-  /* Hover lift effect */
+  /* Hover lift effect - Apple spring */
   .hover-lift {
-    @apply transition-all duration-300;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
   }
   
   .hover-lift:hover {
@@ -318,15 +323,33 @@
     box-shadow: var(--shadow-lg);
   }
   
-  /* Stats card */
+  .hover-lift:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.15s;
+  }
+  
+  /* Stats card - Apple spring */
   .stat-card {
-    @apply bg-card rounded-2xl p-6 transition-all duration-300;
+    @apply bg-card rounded-2xl p-6;
     box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
   }
   
   .stat-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-1px);
+  }
+
+  .stat-card:active {
+    transform: scale(0.98);
+    transition-duration: 0.15s;
+  }
+
+  /* Global smooth transitions for interactive elements */
+  button, a, input, select, textarea, [role="button"] {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
