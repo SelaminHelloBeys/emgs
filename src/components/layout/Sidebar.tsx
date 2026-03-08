@@ -48,6 +48,7 @@ const navItems: NavItem[] = [
   { icon: Heart, label: 'Öğrenci Takibi', href: '/student-tracking', roles: ['rehber'] },
   { icon: Heart, label: 'Çocuk Takibi', href: '/cocuk-takibi', roles: ['veli'] },
   { icon: Shield, label: 'Moderasyon', href: '/moderation', roles: ['yonetici', 'admin'] },
+  { icon: Layout, label: 'Sayfa Erişimi', href: '/sayfa-erisimi', roles: ['yonetici', 'admin'] },
   { icon: GraduationCap, label: 'Okul Yönetimi', href: '/school-management', roles: ['mudur', 'mudur_yardimcisi'] },
   { icon: BarChart3, label: 'Analitik', href: '/analytics', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   { icon: Megaphone, label: 'Duyurular', href: '/announcements', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'ogrenci', 'veli'] },
