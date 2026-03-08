@@ -78,18 +78,19 @@ export const AnnouncementsPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between animate-slide-up">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 animate-slide-up">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Duyurular</h1>
-          <p className="text-muted-foreground">Okul ve sınıf duyuruları</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Duyurular</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Okul ve sınıf duyuruları</p>
         </div>
         <div className="flex gap-2">
           {canCreateAnnouncements && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="apple" className="gap-2">
+                <Button variant="apple" className="gap-2 text-sm">
                   <Plus className="w-4 h-4" />
-                  Duyuru Oluştur
+                  <span className="hidden sm:inline">Duyuru Oluştur</span>
+                  <span className="sm:hidden">Oluştur</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
