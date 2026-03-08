@@ -58,7 +58,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 type Language = 'tr' | 'en' | 'de';
 
