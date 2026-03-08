@@ -146,15 +146,15 @@ export const KonuAnlatimiPage: React.FC = () => {
     return (
       <div className="space-y-8">
         <div className="text-center max-w-2xl mx-auto animate-fade-in">
-          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary to-blue-600 dark:to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-primary to-blue-600 dark:to-blue-400 bg-clip-text text-transparent">
             Konu Anlatımı
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm sm:text-lg">
             Ders seçerek konu anlatım videolarına ulaşın
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
           {SUBJECTS.map((subject, index) => (
             <Card
               key={subject.id}
@@ -199,7 +199,7 @@ export const KonuAnlatimiPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">{selectedSubject.icon}</span>
-              <h1 className={cn("text-3xl font-bold", selectedSubject.textColor)}>{selectedSubject.name}</h1>
+              <h1 className={cn("text-xl sm:text-3xl font-bold", selectedSubject.textColor)}>{selectedSubject.name}</h1>
             </div>
             <p className="text-muted-foreground">Ünite seçerek derslere göz atın</p>
           </div>
@@ -272,7 +272,7 @@ export const KonuAnlatimiPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xl">{selectedSubject.icon}</span>
-              <h1 className="text-2xl font-bold">{selectedSubject.name} - {selectedUnit.name}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold">{selectedSubject.name} - {selectedUnit.name}</h1>
             </div>
             <p className="text-muted-foreground">Konu anlatım videoları</p>
           </div>
@@ -312,10 +312,10 @@ export const KonuAnlatimiPage: React.FC = () => {
                     </div>
                   </Card>
 
-                  <Card className="p-6 border-0 bg-card dark:bg-card/80 backdrop-blur-sm">
-                    <div className="flex items-start gap-4">
+                  <Card className="p-4 sm:p-6 border-0 bg-card dark:bg-card/80 backdrop-blur-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <span className={cn("text-xs font-medium px-2 py-1 rounded-full", selectedSubject.badgeBg, selectedSubject.textColor)}>
                             {selectedSubject.name} - {selectedUnit.name}
                           </span>
@@ -326,8 +326,8 @@ export const KonuAnlatimiPage: React.FC = () => {
                             </span>
                           )}
                         </div>
-                        <h2 className="text-xl font-semibold mt-2 mb-1">{selectedLesson.title}</h2>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                        <h2 className="text-lg sm:text-xl font-semibold mt-2 mb-1">{selectedLesson.title}</h2>
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-muted-foreground mb-4">
                           <span className="flex items-center gap-1">
                             <User className="w-4 h-4" /> {selectedLesson.creator_name}
                           </span>
@@ -347,15 +347,15 @@ export const KonuAnlatimiPage: React.FC = () => {
                         )}
                         
                         {selectedLesson.description && (
-                          <p className="text-muted-foreground">{selectedLesson.description}</p>
+                          <p className="text-sm sm:text-base text-muted-foreground">{selectedLesson.description}</p>
                         )}
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <ThumbsUp className="w-4 h-4" /> Beğen
+                      <div className="flex gap-2 shrink-0">
+                        <Button variant="outline" size="sm" className="gap-1 text-xs sm:text-sm">
+                          <ThumbsUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Beğen
                         </Button>
-                        <Button variant="apple" size="sm" className="gap-1">
-                          <BookOpen className="w-4 h-4" /> Kaydet
+                        <Button variant="apple" size="sm" className="gap-1 text-xs sm:text-sm">
+                          <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Kaydet
                         </Button>
                       </div>
                     </div>

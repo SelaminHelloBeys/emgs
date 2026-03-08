@@ -78,18 +78,19 @@ export const AnnouncementsPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between animate-slide-up">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 animate-slide-up">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Duyurular</h1>
-          <p className="text-muted-foreground">Okul ve sınıf duyuruları</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Duyurular</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Okul ve sınıf duyuruları</p>
         </div>
         <div className="flex gap-2">
           {canCreateAnnouncements && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="apple" className="gap-2">
+                <Button variant="apple" className="gap-2 text-sm">
                   <Plus className="w-4 h-4" />
-                  Duyuru Oluştur
+                  <span className="hidden sm:inline">Duyuru Oluştur</span>
+                  <span className="sm:hidden">Oluştur</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
@@ -194,31 +195,31 @@ export const AnnouncementsPage: React.FC = () => {
                   config.borderColor
                 )}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3 sm:gap-4">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    "w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0",
                     config.color
                   )}>
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold">{announcement.title}</h3>
+                    <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                      <h3 className="font-semibold text-sm sm:text-base">{announcement.title}</h3>
                     </div>
-                    <p className="text-muted-foreground mb-3">{announcement.content}</p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mb-2 sm:mb-3">{announcement.content}</p>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Megaphone className="w-4 h-4" />
+                        <Megaphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span className="font-medium text-foreground">{announcement.creator_name}</span>
                         <VerificationTick tickType={creatorTickType} size="sm" />
                       </span>
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {formatDate(announcement.created_at)}
                       </span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="hidden sm:flex">
                     <ChevronRight className="w-5 h-5" />
                   </Button>
                 </div>

@@ -78,7 +78,7 @@ const ThemeSelector = () => {
   const { theme, setTheme } = useTheme();
   
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {themeOptions.map((opt) => {
         const Icon = opt.icon;
         const isActive = theme === opt.value;
@@ -248,33 +248,36 @@ export const SettingsPage: React.FC = () => {
   const tickType = role ? getVerificationTick(role, isVerified) : 'none';
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-6 sm:space-y-8 max-w-4xl">
       <div className="animate-slide-up">
-        <h1 className="text-3xl font-bold mb-2">Ayarlar</h1>
-        <p className="text-muted-foreground">Hesap ve uygulama ayarları</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Ayarlar</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Hesap ve uygulama ayarları</p>
       </div>
 
-      <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-          <TabsTrigger value="account" className="gap-2">
-            <User className="w-4 h-4" />
+      <Tabs defaultValue="account" className="space-y-4 sm:space-y-6">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1 overflow-x-auto max-w-full">
+          <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm">
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Hesap
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="w-4 h-4" />
+          <TabsTrigger value="security" className="gap-1.5 text-xs sm:text-sm">
+            <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Güvenlik
           </TabsTrigger>
-          <TabsTrigger value="role" className="gap-2">
-            <BadgeCheck className="w-4 h-4" />
-            Rol Bilgisi
+          <TabsTrigger value="role" className="gap-1.5 text-xs sm:text-sm">
+            <BadgeCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Rol Bilgisi</span>
+            <span className="sm:hidden">Rol</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="w-4 h-4" />
-            Bildirimler
+          <TabsTrigger value="notifications" className="gap-1.5 text-xs sm:text-sm">
+            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Bildirimler</span>
+            <span className="sm:hidden">Bildir.</span>
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="gap-2">
-            <Settings className="w-4 h-4" />
-            Tercihler
+          <TabsTrigger value="preferences" className="gap-1.5 text-xs sm:text-sm">
+            <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Tercihler</span>
+            <span className="sm:hidden">Tercih</span>
           </TabsTrigger>
           {role === 'ogrenci' && (
             <TabsTrigger value="parent-code" className="gap-2">
@@ -288,35 +291,35 @@ export const SettingsPage: React.FC = () => {
               Veli Kodum
             </TabsTrigger>
           )}
-          <TabsTrigger value="premium" className="gap-2">
-            <span className="text-lg">💎</span>
+          <TabsTrigger value="premium" className="gap-1.5 text-xs sm:text-sm">
+            <span className="text-sm sm:text-lg">💎</span>
             Premium
           </TabsTrigger>
-          <TabsTrigger value="about" className="gap-2">
-            <Info className="w-4 h-4" />
+          <TabsTrigger value="about" className="gap-1.5 text-xs sm:text-sm">
+            <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Hakkında
           </TabsTrigger>
         </TabsList>
 
         {/* Account Tab */}
         <TabsContent value="account" className="space-y-6">
-          <Card variant="elevated" className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <User className="w-8 h-8 text-primary" />
+          <Card variant="elevated" className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="relative shrink-0">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <User className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
                 </div>
                 <button className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                   <Camera className="w-3 h-3" />
                 </button>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">{profile?.name || 'Kullanıcı'}</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold truncate">{profile?.name || 'Kullanıcı'}</h2>
                   <VerificationTick tickType={tickType} size="md" />
                 </div>
-                <p className="text-muted-foreground">{user?.email}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
                     {role && roleLabels[role]}
                   </span>
@@ -328,7 +331,7 @@ export const SettingsPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              <Button variant="outline" onClick={() => setIsProfileDialogOpen(true)}>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setIsProfileDialogOpen(true)}>
                 Düzenle
               </Button>
             </div>

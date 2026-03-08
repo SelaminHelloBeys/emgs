@@ -111,10 +111,8 @@ export const AppLayout: React.FC = () => {
 
   if (!isAuthenticated || !user || isLoadingModes || showLoadingScreen) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-primary shadow-lg flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-2xl">E</span>
-        </div>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
+        <img src="/emg-logo.png" alt="EMG Logo" className="w-16 h-16 rounded-2xl shadow-lg object-contain" />
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
         <p className="text-sm text-muted-foreground">EMG yükleniyor...</p>
       </div>
@@ -152,7 +150,7 @@ export const AppLayout: React.FC = () => {
         <Sidebar collapsed={sidebarCollapsed} onCollapse={setSidebarCollapsed} />
         <main 
           className={cn(
-            "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 p-4 sm:p-6 lg:p-8",
+            "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 p-3 sm:p-6 lg:p-8",
             sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
           )}
         >

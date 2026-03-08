@@ -139,10 +139,10 @@ export const StudentDashboard: React.FC = () => {
       <div className="animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
               Merhaba, {profile?.name?.split(' ')[0] || 'Öğrenci'} 👋
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Bugün öğrenmeye hazır mısın? {profile?.class && `${profile.class} sınıfı`}
             </p>
           </div>
@@ -208,7 +208,7 @@ export const StudentDashboard: React.FC = () => {
       {/* Deneme Stats & LGS */}
       {participatedExams.length > 0 && (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             <Card className="p-5 text-center">
               <p className="text-2xl font-bold text-primary">{avgNet.toFixed(1)}</p>
               <p className="text-xs text-muted-foreground mt-1">Ort. Net</p>
