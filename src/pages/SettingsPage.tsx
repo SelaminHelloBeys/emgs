@@ -614,43 +614,71 @@ export const SettingsPage: React.FC = () => {
                 <Info className="w-7 h-7 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Platform Bilgileri</h3>
-                <p className="text-sm text-muted-foreground">EMG Eğitim Platformu hakkında</p>
+                <h3 className="text-lg font-semibold">Platform Bilgileri & Yasal Bilgilendirme</h3>
+                <p className="text-sm text-muted-foreground">EMG Eğitim Platformu hakkında tüm yasal bilgiler</p>
               </div>
             </div>
 
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4">
-                {/* Platform Info */}
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                  <h4 className="font-semibold flex items-center gap-2 mb-2">
-                    <Shield className="w-4 h-4 text-primary" />
-                    Platform Hakkında
+            <ScrollArea className="max-h-[70vh]">
+              <div className="space-y-5 pr-2">
+                {/* 1. Platform Info */}
+                <div className="p-5 bg-primary/5 border border-primary/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <Shield className="w-5 h-5 text-primary" />
+                    1. Platform Hakkında
                   </h4>
-                  <p className="text-sm text-muted-foreground">
-                    <strong>EMG (Eğitim Materyal Geçidi)</strong>, <strong>EMG Ördektif</strong> tarafından 
-                    geliştirilen ve yönetilen bir eğitim platformudur. Platform, öğrencilerin akademik 
-                    başarılarını artırmak amacıyla çeşitli eğitim materyalleri sunmaktadır. Tüm hakları 
-                    EMG Ördektif'e aittir.
-                  </p>
+                  <div className="text-sm text-muted-foreground space-y-3">
+                    <p>
+                      <strong>EMG (Eğitim Materyal Geçidi)</strong>, <strong>EMG Ördektif</strong> tarafından 
+                      geliştirilen, yönetilen ve işletilen bir dijital eğitim platformudur.
+                    </p>
+                    <p>
+                      Platform, Türkiye Cumhuriyeti eğitim müfredatına uygun olarak hazırlanmış eğitim materyallerini 
+                      öğrencilere, öğretmenlere ve velilere dijital ortamda sunmayı amaçlamaktadır. LGS (Liselere 
+                      Geçiş Sınavı) hazırlık sürecinde öğrencilere destek olmak temel hedefimizdir.
+                    </p>
+                    <p>
+                      Platform; konu anlatım videoları, deneme sınavları, ödev takibi, optik form okuma, 
+                      başarı rozetleri ve veli-öğretmen iletişim araçları gibi kapsamlı eğitim modüllerini 
+                      tek çatı altında toplamaktadır.
+                    </p>
+                    <div className="mt-3 p-3 bg-primary/5 rounded-lg">
+                      <p className="text-xs">
+                        <strong>Kuruluş:</strong> 2024 | <strong>Geliştirici:</strong> EMG Ördektif | 
+                        <strong> Versiyon:</strong> 2.0.0 | <strong>Son Güncelleme:</strong> Mart 2026
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Copyright & Content */}
-                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
-                  <h4 className="font-semibold flex items-center gap-2 mb-2">
-                    <Copyright className="w-4 h-4 text-amber-600" />
-                    Telif Hakları ve İçerik Kaynağı
+                {/* 2. Copyright & Content Attribution */}
+                <div className="p-5 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <Copyright className="w-5 h-5 text-amber-600" />
+                    2. Telif Hakları ve İçerik Kaynağı
                   </h4>
-                  <div className="text-sm text-muted-foreground space-y-2">
+                  <div className="text-sm text-muted-foreground space-y-3">
                     <p>
                       Bu platformda sunulan eğitim içeriklerinin bir kısmı <strong>Tonguç Akademi</strong>'nin 
-                      ücretsiz olarak paylaştığı eğitim materyallerinden yararlanılarak hazırlanmıştır.
+                      ücretsiz ve açık erişimli olarak paylaştığı eğitim materyallerinden yararlanılarak 
+                      hazırlanmıştır. Tonguç Akademi, Türkiye'nin önde gelen eğitim kurumlarından biridir.
                     </p>
                     <p>
-                      Tonguç Akademi, Türkiye'nin önde gelen eğitim kurumlarından biri olup, kaliteli 
-                      eğitim içerikleriyle öğrencilere destek olmaktadır. Kullanılan tüm içeriklerin 
-                      telif hakları orijinal sahiplerine aittir.
+                      <strong>Telif Hakkı Bildirimi:</strong> Platformda kullanılan tüm üçüncü taraf içeriklerin 
+                      (videolar, görseller, metinler, sorular) telif hakları orijinal sahiplerine aittir. 
+                      EMG Ördektif, bu içeriklerin sahibi olduğunu iddia etmemektedir.
                     </p>
+                    <p>
+                      Platform tarafından üretilen özgün içerikler (arayüz tasarımı, yazılım kodu, özgün sorular 
+                      ve materyaller) <strong>EMG Ördektif</strong>'in münhasır mülkiyetindedir ve telif hakları 
+                      ile korunmaktadır.
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 mt-2">
+                      <li>Üçüncü taraf içerikler yalnızca eğitim amaçlı kullanılmaktadır</li>
+                      <li>Ticari kazanç amacı güdülmemektedir</li>
+                      <li>İçerik sahiplerinin talepleri derhal değerlendirilmektedir</li>
+                      <li>Fair use (adil kullanım) ilkesi kapsamında hareket edilmektedir</li>
+                    </ul>
                     <div className="flex items-center gap-2 mt-3">
                       <BookOpen className="w-4 h-4" />
                       <a 
@@ -666,62 +694,189 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Legal Disclaimer */}
-                <div className="p-4 bg-muted/30 rounded-xl">
-                  <h4 className="font-semibold flex items-center gap-2 mb-2">
-                    <Scale className="w-4 h-4" />
-                    Yasal Bilgilendirme ve Sorumluluk Reddi
+                {/* 3. Legal Disclaimer */}
+                <div className="p-5 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <Scale className="w-5 h-5" />
+                    3. Yasal Bilgilendirme ve Sorumluluk Reddi
                   </h4>
-                  <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-                    <li>Bu platform, ticari olmayan eğitim amaçlı geliştirilmiştir.</li>
-                    <li>Kullanılan içeriklerin telif hakları orijinal sahiplerine aittir.</li>
-                    <li>Platform, içeriklerin doğruluğu veya güncelliği konusunda garanti vermemektedir.</li>
-                    <li>Kullanıcılar, platformu kendi sorumlulukları dahilinde kullanmaktadır.</li>
-                    <li>Platform yönetimi, kullanıcıların platformu kötüye kullanmasından doğacak sonuçlardan sorumlu tutulamaz.</li>
-                    <li>Kişisel verilerin korunması kapsamında toplanan bilgiler üçüncü şahıslarla paylaşılmamaktadır.</li>
-                  </ul>
+                  <div className="text-sm text-muted-foreground space-y-3">
+                    <p>
+                      Bu platform, Türkiye Cumhuriyeti yasaları çerçevesinde faaliyet göstermektedir. 
+                      Aşağıdaki koşullar, platformun kullanımı ile ilgili yasal çerçeveyi belirlemektedir:
+                    </p>
+                    <ul className="list-disc list-inside space-y-2">
+                      <li><strong>Ticari Olmayan Kullanım:</strong> Bu platform, ticari olmayan eğitim amaçlı geliştirilmiştir. Herhangi bir ticari faaliyette bulunulmamaktadır.</li>
+                      <li><strong>İçerik Doğruluğu:</strong> Platform, sunulan eğitim içeriklerinin doğruluğu, güncelliği veya eksiksizliği konusunda herhangi bir garanti vermemektedir.</li>
+                      <li><strong>Kullanıcı Sorumluluğu:</strong> Kullanıcılar, platformu kendi sorumlulukları dahilinde kullanmaktadır. Platform üzerinden elde edilen bilgilerin doğruluğunu bağımsız kaynaklardan teyit etmeleri önerilir.</li>
+                      <li><strong>Dolaylı Zararlar:</strong> Platform yönetimi, kullanıcıların platformu kötüye kullanmasından, teknik aksaklıklardan veya içerik hatalarından doğacak doğrudan veya dolaylı zararlardan sorumlu tutulamaz.</li>
+                      <li><strong>Üçüncü Taraf Bağlantılar:</strong> Platform, üçüncü taraf web sitelerine bağlantılar içerebilir. Bu sitelerin içeriğinden EMG Ördektif sorumlu değildir.</li>
+                      <li><strong>Hizmet Sürekliliği:</strong> Platform, bakım, güncelleme veya teknik nedenlerle önceden haber verilmeksizin geçici olarak erişime kapatılabilir.</li>
+                      <li><strong>İçerik Değişikliği:</strong> Platform içerikleri önceden bildirim yapılmaksızın değiştirilebilir, güncellenebilir veya kaldırılabilir.</li>
+                    </ul>
+                  </div>
                 </div>
 
-                {/* Complaints & DMCA */}
-                <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-xl">
-                  <h4 className="font-semibold flex items-center gap-2 mb-2">
-                    <FileText className="w-4 h-4 text-destructive" />
-                    Şikayetler ve İçerik Kaldırma Talepleri
+                {/* 4. Privacy & Data Protection */}
+                <div className="p-5 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <Lock className="w-5 h-5 text-blue-600" />
+                    4. Gizlilik Politikası ve Kişisel Verilerin Korunması
                   </h4>
-                  <div className="text-sm text-muted-foreground space-y-2">
+                  <div className="text-sm text-muted-foreground space-y-3">
+                    <p>
+                      EMG Ördektif, 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında 
+                      kullanıcıların kişisel verilerini korumayı taahhüt eder.
+                    </p>
+                    <h5 className="font-semibold text-foreground mt-3">Toplanan Veriler:</h5>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Kayıt bilgileri (ad-soyad, e-posta adresi)</li>
+                      <li>Okul ve sınıf bilgileri</li>
+                      <li>Platform kullanım istatistikleri (izlenen dersler, çözülen sorular)</li>
+                      <li>Deneme sınavı sonuçları ve akademik performans verileri</li>
+                      <li>Giriş ve oturum bilgileri</li>
+                    </ul>
+                    <h5 className="font-semibold text-foreground mt-3">Veri Kullanım Amaçları:</h5>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Eğitim hizmetlerinin sunulması ve iyileştirilmesi</li>
+                      <li>Öğrenci başarı takibi ve raporlama</li>
+                      <li>Veli ve öğretmen bilgilendirme</li>
+                      <li>Platform güvenliğinin sağlanması</li>
+                    </ul>
+                    <h5 className="font-semibold text-foreground mt-3">Veri Güvenliği:</h5>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Veriler şifreli bağlantılar (SSL/TLS) üzerinden iletilmektedir</li>
+                      <li>Kişisel veriler üçüncü şahıslarla paylaşılmamakta ve satılmamaktadır</li>
+                      <li>Veriler güvenli sunucularda şifrelenmiş olarak saklanmaktadır</li>
+                      <li>Düzenli güvenlik denetimleri yapılmaktadır</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 5. Terms of Use */}
+                <div className="p-5 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <FileText className="w-5 h-5" />
+                    5. Kullanım Koşulları
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-3">
+                    <p>Platformu kullanarak aşağıdaki koşulları kabul etmiş sayılırsınız:</p>
+                    <ul className="list-disc list-inside space-y-2">
+                      <li><strong>Hesap Güvenliği:</strong> Kullanıcılar, hesap bilgilerinin gizliliğinden kendileri sorumludur. Hesap bilgilerinin üçüncü kişilerle paylaşılmaması gerekmektedir.</li>
+                      <li><strong>İçerik Paylaşımı:</strong> Platform üzerindeki içeriklerin izinsiz kopyalanması, dağıtılması veya ticari amaçla kullanılması yasaktır.</li>
+                      <li><strong>Uygun Davranış:</strong> Kullanıcılar, platform üzerinde hakaret, taciz, spam veya uygunsuz içerik paylaşamaz.</li>
+                      <li><strong>Yaş Sınırı:</strong> 13 yaşından küçük kullanıcılar platformu yalnızca veli/vasi gözetiminde kullanabilir.</li>
+                      <li><strong>Hesap Feshi:</strong> Kullanım koşullarını ihlal eden hesaplar önceden uyarı yapılmaksızın askıya alınabilir veya silinebilir.</li>
+                      <li><strong>Fikri Mülkiyet:</strong> Platform arayüzü, tasarımı ve özgün içerikleri EMG Ördektif'in fikri mülkiyetindedir.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 6. Complaints & DMCA */}
+                <div className="p-5 bg-destructive/5 border border-destructive/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    6. Şikayetler, İçerik Kaldırma ve DMCA Talepleri
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-3">
                     <p>
                       Telif hakkı ihlali, uygunsuz içerik veya herhangi bir yasal sorun bildirmek için 
-                      aşağıdaki yollarla bizimle iletişime geçebilirsiniz:
+                      aşağıdaki prosedürü takip edebilirsiniz:
                     </p>
+                    
+                    <h5 className="font-semibold text-foreground">Telif Hakkı İhlali Bildirimi (DMCA):</h5>
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>İhlal edilen içeriğin tam bağlantısını belirtin</li>
+                      <li>Orijinal içeriğin sahibi olduğunuzu kanıtlayan bilgileri ekleyin</li>
+                      <li>İletişim bilgilerinizi (ad, soyad, e-posta, telefon) paylaşın</li>
+                      <li>Taleplerinizi aşağıdaki e-posta adresine gönderin</li>
+                    </ol>
+
+                    <h5 className="font-semibold text-foreground mt-3">İşlem Süreleri:</h5>
                     <ul className="list-disc list-inside space-y-1">
-                      <li>İçerik kaldırma talepleri en kısa sürede değerlendirilecektir</li>
-                      <li>Telif hakkı sahipleri, içeriklerinin kaldırılması için resmi talepte bulunabilir</li>
-                      <li>Uygunsuz içerik bildirimleri 24 saat içinde incelenecektir</li>
+                      <li>Telif hakkı kaldırma talepleri: <strong>48 saat</strong> içinde değerlendirilir</li>
+                      <li>Uygunsuz içerik bildirimleri: <strong>24 saat</strong> içinde incelenir</li>
+                      <li>Genel şikayetler: <strong>72 saat</strong> içinde yanıtlanır</li>
+                      <li>Acil güvenlik bildirimleri: <strong>Derhal</strong> işleme alınır</li>
+                    </ul>
+
+                    <div className="mt-3 p-3 bg-destructive/5 border border-destructive/10 rounded-lg">
+                      <p>📧 <strong>Şikayet ve Talepler:</strong> ordektifinfo@gmail.com</p>
+                      <p className="text-xs mt-1">Tüm talepler gizlilik ilkesine uygun olarak değerlendirilecektir.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 7. User Rights */}
+                <div className="p-5 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <Users className="w-5 h-5 text-emerald-600" />
+                    7. Kullanıcı Hakları
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-3">
+                    <p>KVKK kapsamında kullanıcılarımız aşağıdaki haklara sahiptir:</p>
+                    <ul className="list-disc list-inside space-y-2">
+                      <li><strong>Erişim Hakkı:</strong> Kişisel verilerinizin işlenip işlenmediğini öğrenme ve işlenmişse bilgi talep etme</li>
+                      <li><strong>Düzeltme Hakkı:</strong> Kişisel verilerinizin eksik veya yanlış işlenmiş olması halinde düzeltilmesini isteme</li>
+                      <li><strong>Silme Hakkı:</strong> Hesabınızı ve ilişkili tüm kişisel verileri silme talebinde bulunma</li>
+                      <li><strong>İtiraz Hakkı:</strong> Kişisel verilerinizin münhasıran otomatik sistemler ile analiz edilmesi sonucu aleyhinize bir sonucun ortaya çıkmasına itiraz etme</li>
+                      <li><strong>Taşınabilirlik Hakkı:</strong> Kişisel verilerinizin yapılandırılmış, yaygın olarak kullanılan ve makine tarafından okunabilir bir formatta size verilmesini isteme</li>
+                      <li><strong>Şikayet Hakkı:</strong> Kişisel Verileri Koruma Kurulu'na şikayette bulunma</li>
                     </ul>
                     <p className="mt-2">
-                      📧 İletişim: <strong>ordektifinfo@gmail.com</strong>
+                      Haklarınızı kullanmak için <strong>ordektifinfo@gmail.com</strong> adresine başvurabilirsiniz.
                     </p>
                   </div>
                 </div>
 
-                {/* Rights */}
-                <div className="p-4 bg-muted/30 rounded-xl">
-                  <h4 className="font-semibold flex items-center gap-2 mb-2">
-                    <Shield className="w-4 h-4" />
-                    Kullanıcı Hakları
+                {/* 8. Cookie Policy */}
+                <div className="p-5 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <Globe className="w-5 h-5" />
+                    8. Çerez (Cookie) Politikası
                   </h4>
-                  <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-                    <li>Kullanıcılar hesaplarını istedikleri zaman silme hakkına sahiptir</li>
-                    <li>Kişisel verilere erişim ve düzeltme talep edilebilir</li>
-                    <li>Platform kullanım koşulları önceden haber verilmeksizin değiştirilebilir</li>
-                    <li>Platformdan kaynaklanan zararlar için yasal sorumluluk kabul edilmemektedir</li>
-                  </ul>
+                  <div className="text-sm text-muted-foreground space-y-3">
+                    <p>
+                      Platform, kullanıcı deneyimini iyileştirmek amacıyla çerezler kullanmaktadır:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li><strong>Zorunlu Çerezler:</strong> Oturum yönetimi ve güvenlik için gereklidir</li>
+                      <li><strong>Tercih Çerezleri:</strong> Tema, dil ve kullanıcı tercihlerini saklar</li>
+                      <li><strong>Analitik Çerezler:</strong> Platform kullanım istatistiklerini toplar</li>
+                    </ul>
+                    <p>
+                      Platformu kullanmaya devam ederek çerez kullanımını kabul etmiş sayılırsınız. 
+                      Tarayıcı ayarlarınızdan çerezleri devre dışı bırakabilirsiniz ancak bu durumda 
+                      bazı platform özellikleri düzgün çalışmayabilir.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="text-center text-xs text-muted-foreground pt-4 border-t">
-                  <p>© 2024-2026 EMG Ördektif. Tüm hakları saklıdır.</p>
-                  <p className="mt-1">Bu platform, eğitim amaçlı olarak geliştirilmiştir.</p>
-                  <p className="mt-1">Versiyon 2.0 | Son güncelleme: Mart 2026</p>
+                {/* 9. Changes */}
+                <div className="p-5 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-3 text-lg">
+                    <FileText className="w-5 h-5" />
+                    9. Değişiklikler ve Güncellemeler
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p>
+                      EMG Ördektif, bu yasal bilgilendirme metnini herhangi bir zamanda, önceden bildirimde 
+                      bulunmaksızın güncelleme hakkını saklı tutar. Yapılan değişiklikler, platformda 
+                      yayınlandığı anda yürürlüğe girer.
+                    </p>
+                    <p>
+                      Kullanıcıların bu sayfayı düzenli olarak kontrol etmeleri önerilir. Platformu 
+                      kullanmaya devam etmeniz, güncellenmiş koşulları kabul ettiğiniz anlamına gelir.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="text-center text-xs text-muted-foreground pt-6 border-t space-y-1">
+                  <p className="font-semibold">© 2024-2026 EMG Ördektif. Tüm hakları saklıdır.</p>
+                  <p>Bu platform, ticari olmayan eğitim amaçlı olarak geliştirilmiştir.</p>
+                  <p>Versiyon 2.0.0 | Son güncelleme: Mart 2026</p>
+                  <p className="mt-2">Türkiye Cumhuriyeti yasaları çerçevesinde faaliyet göstermektedir.</p>
                 </div>
               </div>
             </ScrollArea>
