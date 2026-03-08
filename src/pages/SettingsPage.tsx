@@ -237,7 +237,7 @@ export const SettingsPage: React.FC = () => {
     setIsLoading(false);
   };
 
-  const handleLanguageChange2 = () => {}; // placeholder removed
+  
 
   const handleLanguageChange = (value: Language) => {
     setLanguage(value);
