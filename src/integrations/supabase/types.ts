@@ -614,6 +614,7 @@ export type Database = {
     Functions: {
       can_create_announcements: { Args: { _user_id: string }; Returns: boolean }
       can_create_content: { Args: { _user_id: string }; Returns: boolean }
+      generate_parent_code: { Args: never; Returns: string }
       get_exam_answers_after_completion: {
         Args: { p_exam_id: string }
         Returns: {
