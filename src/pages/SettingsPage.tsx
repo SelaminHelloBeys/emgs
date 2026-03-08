@@ -288,6 +288,10 @@ export const SettingsPage: React.FC = () => {
               Veli Kodum
             </TabsTrigger>
           )}
+          <TabsTrigger value="premium" className="gap-2">
+            <span className="text-lg">💎</span>
+            Premium
+          </TabsTrigger>
           <TabsTrigger value="about" className="gap-2">
             <Info className="w-4 h-4" />
             Hakkında
