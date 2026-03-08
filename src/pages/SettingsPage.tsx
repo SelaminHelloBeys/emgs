@@ -291,12 +291,12 @@ export const SettingsPage: React.FC = () => {
               Veli Kodum
             </TabsTrigger>
           )}
-          <TabsTrigger value="premium" className="gap-2">
-            <span className="text-lg">💎</span>
+          <TabsTrigger value="premium" className="gap-1.5 text-xs sm:text-sm">
+            <span className="text-sm sm:text-lg">💎</span>
             Premium
           </TabsTrigger>
-          <TabsTrigger value="about" className="gap-2">
-            <Info className="w-4 h-4" />
+          <TabsTrigger value="about" className="gap-1.5 text-xs sm:text-sm">
+            <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Hakkında
           </TabsTrigger>
         </TabsList>
