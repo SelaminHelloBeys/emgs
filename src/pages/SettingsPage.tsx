@@ -722,7 +722,7 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
 
-            <ScrollArea className="max-h-[70vh]">
+            <div className="overflow-y-auto max-h-[70vh] pr-2">
               <div className="space-y-5 pr-2">
                 {/* 1. Platform Info */}
                 <div className="p-5 bg-primary/5 border border-primary/20 rounded-xl">
