@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -18,9 +18,7 @@ import {
   LogOut,
   ChevronRight,
   Mail,
-  Phone,
   Building2,
-  UserCog,
   Check,
   Lock,
   Camera,
@@ -31,8 +29,20 @@ import {
   Moon,
   Monitor,
   Palette,
+  Info,
+  Scale,
+  Copyright,
+  BookOpen,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  BadgeCheck,
+  AlertTriangle,
+  FileText,
+  Users,
 } from 'lucide-react';
-import { roleLabels } from '@/types/user';
+import { roleLabels, getVerificationTick } from '@/types/user';
+import { VerificationTick } from '@/components/VerificationTick';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -48,7 +58,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-// Admin panels moved to ModerationPage
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Language = 'tr' | 'en' | 'de';
 
@@ -108,7 +118,7 @@ const ThemeSelector = () => {
 };
 
 export const SettingsPage: React.FC = () => {
-  const { user, profile, role, signOut, isAdmin } = useAuth();
+  const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
   
   const [notifications, setNotifications] = useState({
@@ -121,22 +131,49 @@ export const SettingsPage: React.FC = () => {
   const [language, setLanguage] = useState<Language>('tr');
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-  const [is2FADialogOpen, setIs2FADialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showParentCode, setShowParentCode] = useState(false);
+  const [parentCode, setParentCode] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
 
-  // Password change state
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  // Profile edit state
   const [profileForm, setProfileForm] = useState({
     name: profile?.name || '',
     schoolName: profile?.school_name || '',
     className: profile?.class || '',
   });
+
+  // Fetch parent code for students
+  useEffect(() => {
+    if (user && role === 'ogrenci') {
+      supabase
+        .from('parent_codes')
+        .select('code')
+        .eq('student_user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setParentCode(data.code);
+        });
+    }
+  }, [user, role]);
+
+  // Fetch verification status
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('user_verifications')
+        .select('is_verified')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setIsVerified(data.is_verified);
+        });
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut();
@@ -148,30 +185,24 @@ export const SettingsPage: React.FC = () => {
       toast.error('Şifreler eşleşmiyor');
       return;
     }
-
     if (passwordForm.newPassword.length < 6) {
       toast.error('Şifre en az 6 karakter olmalı');
       return;
     }
-
     setIsLoading(true);
-    const { error } = await supabase.auth.updateUser({
-      password: passwordForm.newPassword
-    });
-
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.newPassword });
     if (error) {
       toast.error('Şifre değiştirilemedi: ' + error.message);
     } else {
       toast.success('Şifre başarıyla değiştirildi');
       setIsPasswordDialogOpen(false);
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setPasswordForm({ newPassword: '', confirmPassword: '' });
     }
     setIsLoading(false);
   };
 
   const handleProfileUpdate = async () => {
     if (!user) return;
-
     setIsLoading(true);
     const { error } = await supabase
       .from('profiles')
@@ -181,7 +212,6 @@ export const SettingsPage: React.FC = () => {
         class: profileForm.className,
       })
       .eq('user_id', user.id);
-
     if (error) {
       toast.error('Profil güncellenemedi');
     } else {
@@ -197,7 +227,7 @@ export const SettingsPage: React.FC = () => {
     toast.success(`Dil ${LANGUAGES.find(l => l.value === value)?.label} olarak değiştirildi`);
   };
 
-  const isAdminRole = false; // Admin controls moved to Moderation page
+  const tickType = role ? getVerificationTick(role, isVerified) : 'none';
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -207,10 +237,18 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       <Tabs defaultValue="account" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
           <TabsTrigger value="account" className="gap-2">
             <User className="w-4 h-4" />
             Hesap
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2">
+            <Shield className="w-4 h-4" />
+            Güvenlik
+          </TabsTrigger>
+          <TabsTrigger value="role" className="gap-2">
+            <BadgeCheck className="w-4 h-4" />
+            Rol Bilgisi
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="w-4 h-4" />
@@ -220,17 +258,20 @@ export const SettingsPage: React.FC = () => {
             <Settings className="w-4 h-4" />
             Tercihler
           </TabsTrigger>
-          {isAdminRole && (
-            <TabsTrigger value="admin" className="gap-2">
-              <Shield className="w-4 h-4" />
-              Yönetim
+          {role === 'ogrenci' && (
+            <TabsTrigger value="parent-code" className="gap-2">
+              <Users className="w-4 h-4" />
+              Veli Kodum
             </TabsTrigger>
           )}
+          <TabsTrigger value="about" className="gap-2">
+            <Info className="w-4 h-4" />
+            Hakkında
+          </TabsTrigger>
         </TabsList>
 
         {/* Account Tab */}
         <TabsContent value="account" className="space-y-6">
-          {/* Profile Card */}
           <Card variant="elevated" className="p-6">
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -242,7 +283,10 @@ export const SettingsPage: React.FC = () => {
                 </button>
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-semibold">{profile?.name || 'Kullanıcı'}</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-semibold">{profile?.name || 'Kullanıcı'}</h2>
+                  <VerificationTick tickType={tickType} size="md" />
+                </div>
                 <p className="text-muted-foreground">{user?.email}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
@@ -262,51 +306,120 @@ export const SettingsPage: React.FC = () => {
             </div>
           </Card>
 
-          {/* Security Settings */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-muted-foreground px-1">Güvenlik</h3>
-            <Card variant="default" className="divide-y divide-border/50">
-              <button 
-                className="w-full flex items-center gap-4 p-4 hover:bg-surface-secondary transition-colors first:rounded-t-2xl"
-                onClick={() => setIsPasswordDialogOpen(true)}
-              >
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                  <Lock className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium">Şifre Değiştir</p>
-                  <p className="text-sm text-muted-foreground">Hesap güvenliği</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </button>
-              
-              <button 
-                className="w-full flex items-center gap-4 p-4 hover:bg-surface-secondary transition-colors last:rounded-b-2xl"
-                onClick={() => setIs2FADialogOpen(true)}
-              >
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium">İki Faktörlü Doğrulama</p>
-                  <p className="text-sm text-muted-foreground">Ekstra güvenlik katmanı</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </button>
-            </Card>
-          </div>
-
           {/* Logout */}
           <Card variant="default" className="p-4">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-4 text-apple-red hover:bg-apple-red/5 p-2 rounded-xl transition-colors"
+              className="w-full flex items-center gap-4 text-destructive hover:bg-destructive/5 p-2 rounded-xl transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-apple-red/10 flex items-center justify-center">
-                <LogOut className="w-5 h-5 text-apple-red" />
+              <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                <LogOut className="w-5 h-5 text-destructive" />
               </div>
               <span className="font-medium">Çıkış Yap</span>
             </button>
+          </Card>
+        </TabsContent>
+
+        {/* Security Tab */}
+        <TabsContent value="security" className="space-y-6">
+          <Card variant="default" className="divide-y divide-border/50">
+            <button 
+              className="w-full flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors first:rounded-t-2xl"
+              onClick={() => setIsPasswordDialogOpen(true)}
+            >
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium">Şifre Değiştir</p>
+                <p className="text-sm text-muted-foreground">Hesap güvenliğiniz için şifrenizi güncelleyin</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+            
+            <div className="flex items-center gap-4 p-4 last:rounded-b-2xl">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Shield className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">İki Faktörlü Doğrulama</p>
+                <p className="text-sm text-muted-foreground">Ekstra güvenlik katmanı (Yakında)</p>
+              </div>
+              <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">Yakında</span>
+            </div>
+
+            <div className="flex items-center gap-4 p-4 last:rounded-b-2xl">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Mail className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">Giriş Geçmişi</p>
+                <p className="text-sm text-muted-foreground">Son giriş yapılan cihaz ve tarihler</p>
+              </div>
+              <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">Yakında</span>
+            </div>
+          </Card>
+        </TabsContent>
+
+        {/* Role Info Tab */}
+        <TabsContent value="role" className="space-y-6">
+          <Card variant="elevated" className="p-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <BadgeCheck className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Rol ve Doğrulama Durumu</h3>
+                <p className="text-sm text-muted-foreground">Hesabınızın rol bilgisi ve doğrulama tiki</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
+                <div>
+                  <p className="text-sm text-muted-foreground">Mevcut Rol</p>
+                  <p className="font-semibold text-lg">{role && roleLabels[role]}</p>
+                </div>
+                <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full">
+                  Aktif
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
+                <div>
+                  <p className="text-sm text-muted-foreground">Doğrulama Durumu</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {isVerified ? (
+                      <>
+                        <VerificationTick tickType={tickType} size="lg" />
+                        <span className="font-semibold text-lg">Doğrulanmış</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="w-5 h-5 text-amber-500" />
+                        <span className="font-semibold text-lg">Doğrulanmamış</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {!isVerified && (
+                  <span className="text-xs font-medium text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-full">
+                    Admin Onayı Bekleniyor
+                  </span>
+                )}
+              </div>
+
+              <div className="p-4 bg-muted/30 rounded-xl">
+                <p className="text-sm text-muted-foreground mb-3">Doğrulama Tik Renkleri</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-blue-500" fill="currentColor" stroke="white" strokeWidth={2.5} /> Onaylı Kullanıcı</div>
+                  <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-foreground" fill="currentColor" stroke="white" strokeWidth={2.5} /> Admin / Yönetici</div>
+                  <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-red-500" fill="currentColor" stroke="white" strokeWidth={2.5} /> Öğretmen</div>
+                  <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-amber-500" fill="currentColor" stroke="white" strokeWidth={2.5} /> Veli</div>
+                  <div className="flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-emerald-500" fill="currentColor" stroke="white" strokeWidth={2.5} /> Yönetim</div>
+                </div>
+              </div>
+            </div>
           </Card>
         </TabsContent>
 
@@ -383,7 +496,6 @@ export const SettingsPage: React.FC = () => {
 
         {/* Preferences Tab */}
         <TabsContent value="preferences" className="space-y-6">
-          {/* Theme Selection */}
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground px-1 flex items-center gap-2">
               <Palette className="w-4 h-4" />
@@ -392,7 +504,6 @@ export const SettingsPage: React.FC = () => {
             <ThemeSelector />
           </div>
 
-          {/* Language */}
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-muted-foreground px-1 flex items-center gap-2">
               <Languages className="w-4 h-4" />
@@ -427,7 +538,195 @@ export const SettingsPage: React.FC = () => {
           </div>
         </TabsContent>
 
-        {/* Admin Tab - Moved to Moderation Page */}
+        {/* Parent Code Tab - Students Only */}
+        {role === 'ogrenci' && (
+          <TabsContent value="parent-code" className="space-y-6">
+            <Card variant="elevated" className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                  <Users className="w-7 h-7 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Veli Kodunuz</h3>
+                  <p className="text-sm text-muted-foreground">Bu kodu velinize verin. Veli hesabı oluşturmak için bu kod gereklidir.</p>
+                </div>
+              </div>
+
+              {parentCode ? (
+                <div className="space-y-4">
+                  <div className="p-6 bg-muted/30 rounded-2xl text-center">
+                    <p className="text-sm text-muted-foreground mb-3">Veli Bağlantı Kodu</p>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className={cn(
+                        "font-mono text-3xl font-bold tracking-wider transition-all",
+                        showParentCode ? "text-foreground" : "text-foreground/0 bg-muted rounded select-none"
+                      )}>
+                        {showParentCode ? parentCode : '●●●●-●●●●-●●●●'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowParentCode(!showParentCode)}
+                      >
+                        {showParentCode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showParentCode && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText(parentCode);
+                        toast.success('Kod panoya kopyalandı');
+                      }}
+                    >
+                      Kodu Kopyala
+                    </Button>
+                  )}
+
+                  <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                      <div className="text-sm text-muted-foreground">
+                        <p className="font-medium text-foreground mb-1">Önemli Bilgi</p>
+                        <p>Bu kodu sadece velinizle paylaşın. Her öğrencinin kendine özel bir veli kodu vardır. Kod bir kez kullanıldıktan sonra tekrar kullanılamaz.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+                  <p className="text-muted-foreground">Veli kodu yükleniyor...</p>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* About Tab */}
+        <TabsContent value="about" className="space-y-6">
+          <Card variant="elevated" className="p-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Info className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Platform Bilgileri</h3>
+                <p className="text-sm text-muted-foreground">EMG Eğitim Platformu hakkında</p>
+              </div>
+            </div>
+
+            <ScrollArea className="max-h-[60vh]">
+              <div className="space-y-4">
+                {/* Platform Info */}
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4 text-primary" />
+                    Platform Hakkında
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>EMG (Eğitim Materyal Geçidi)</strong>, <strong>EMG Ördektif</strong> tarafından 
+                    geliştirilen ve yönetilen bir eğitim platformudur. Platform, öğrencilerin akademik 
+                    başarılarını artırmak amacıyla çeşitli eğitim materyalleri sunmaktadır. Tüm hakları 
+                    EMG Ördektif'e aittir.
+                  </p>
+                </div>
+
+                {/* Copyright & Content */}
+                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-2">
+                    <Copyright className="w-4 h-4 text-amber-600" />
+                    Telif Hakları ve İçerik Kaynağı
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p>
+                      Bu platformda sunulan eğitim içeriklerinin bir kısmı <strong>Tonguç Akademi</strong>'nin 
+                      ücretsiz olarak paylaştığı eğitim materyallerinden yararlanılarak hazırlanmıştır.
+                    </p>
+                    <p>
+                      Tonguç Akademi, Türkiye'nin önde gelen eğitim kurumlarından biri olup, kaliteli 
+                      eğitim içerikleriyle öğrencilere destek olmaktadır. Kullanılan tüm içeriklerin 
+                      telif hakları orijinal sahiplerine aittir.
+                    </p>
+                    <div className="flex items-center gap-2 mt-3">
+                      <BookOpen className="w-4 h-4" />
+                      <a 
+                        href="https://www.tongucakademi.com" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 underline hover:text-primary transition-colors"
+                      >
+                        Tonguç Akademi Web Sitesi
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Legal Disclaimer */}
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-2">
+                    <Scale className="w-4 h-4" />
+                    Yasal Bilgilendirme ve Sorumluluk Reddi
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
+                    <li>Bu platform, ticari olmayan eğitim amaçlı geliştirilmiştir.</li>
+                    <li>Kullanılan içeriklerin telif hakları orijinal sahiplerine aittir.</li>
+                    <li>Platform, içeriklerin doğruluğu veya güncelliği konusunda garanti vermemektedir.</li>
+                    <li>Kullanıcılar, platformu kendi sorumlulukları dahilinde kullanmaktadır.</li>
+                    <li>Platform yönetimi, kullanıcıların platformu kötüye kullanmasından doğacak sonuçlardan sorumlu tutulamaz.</li>
+                    <li>Kişisel verilerin korunması kapsamında toplanan bilgiler üçüncü şahıslarla paylaşılmamaktadır.</li>
+                  </ul>
+                </div>
+
+                {/* Complaints & DMCA */}
+                <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-2">
+                    <FileText className="w-4 h-4 text-destructive" />
+                    Şikayetler ve İçerik Kaldırma Talepleri
+                  </h4>
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p>
+                      Telif hakkı ihlali, uygunsuz içerik veya herhangi bir yasal sorun bildirmek için 
+                      aşağıdaki yollarla bizimle iletişime geçebilirsiniz:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>İçerik kaldırma talepleri en kısa sürede değerlendirilecektir</li>
+                      <li>Telif hakkı sahipleri, içeriklerinin kaldırılması için resmi talepte bulunabilir</li>
+                      <li>Uygunsuz içerik bildirimleri 24 saat içinde incelenecektir</li>
+                    </ul>
+                    <p className="mt-2">
+                      📧 İletişim: <strong>ordektifinfo@gmail.com</strong>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Rights */}
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold flex items-center gap-2 mb-2">
+                    <Shield className="w-4 h-4" />
+                    Kullanıcı Hakları
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
+                    <li>Kullanıcılar hesaplarını istedikleri zaman silme hakkına sahiptir</li>
+                    <li>Kişisel verilere erişim ve düzeltme talep edilebilir</li>
+                    <li>Platform kullanım koşulları önceden haber verilmeksizin değiştirilebilir</li>
+                    <li>Platformdan kaynaklanan zararlar için yasal sorumluluk kabul edilmemektedir</li>
+                  </ul>
+                </div>
+
+                <div className="text-center text-xs text-muted-foreground pt-4 border-t">
+                  <p>© 2024-2026 EMG Ördektif. Tüm hakları saklıdır.</p>
+                  <p className="mt-1">Bu platform, eğitim amaçlı olarak geliştirilmiştir.</p>
+                  <p className="mt-1">Versiyon 2.0 | Son güncelleme: Mart 2026</p>
+                </div>
+              </div>
+            </ScrollArea>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Password Change Dialog */}
@@ -457,9 +756,7 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
-              İptal
-            </Button>
+            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>İptal</Button>
             <Button onClick={handlePasswordChange} disabled={isLoading}>
               {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Değiştir
@@ -498,34 +795,10 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsProfileDialogOpen(false)}>
-              İptal
-            </Button>
+            <Button variant="outline" onClick={() => setIsProfileDialogOpen(false)}>İptal</Button>
             <Button onClick={handleProfileUpdate} disabled={isLoading}>
               {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Kaydet
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 2FA Dialog */}
-      <Dialog open={is2FADialogOpen} onOpenChange={setIs2FADialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>İki Faktörlü Doğrulama</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center">
-              <Shield className="w-8 h-8 text-primary" />
-            </div>
-            <p className="text-muted-foreground mb-4">
-              İki faktörlü doğrulama henüz aktif değil. Bu özellik yakında kullanıma sunulacak.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIs2FADialogOpen(false)}>
-              Kapat
             </Button>
           </DialogFooter>
         </DialogContent>
