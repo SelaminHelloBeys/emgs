@@ -61,6 +61,7 @@ const App = () => (
                   <Route path="/optik-okuyucu" element={<OpticalReaderPage />} />
                   <Route path="/cocuk-takibi" element={<ParentTrackingPage />} />
                   <Route path="/sayfa-erisimi" element={<PageAccessPage />} />
+                  <Route path="/destek" element={<SupportPage />} />
                 </Route>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="*" element={<NotFound />} />
