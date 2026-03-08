@@ -694,15 +694,11 @@ export const SettingsPage: React.FC = () => {
                     <Users className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium mb-1">Henüz veli kodunuz yok</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Velilerin sizinle bağlantı kurabilmesi için bir veli kodu oluşturun.
+                    <p className="font-medium mb-1">Henüz veli kodunuz atanmadı</p>
+                    <p className="text-sm text-muted-foreground">
+                      Veli kodları yöneticiler tarafından oluşturulup atanmaktadır. Lütfen okul yöneticinize başvurun.
                     </p>
                   </div>
-                  <Button onClick={handleGenerateTeacherCode} disabled={isGeneratingTeacherCode} className="gap-2">
-                    {isGeneratingTeacherCode ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-                    Veli Kodu Oluştur
-                  </Button>
                 </div>
               )}
             </Card>
