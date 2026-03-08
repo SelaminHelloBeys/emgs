@@ -78,7 +78,7 @@ const ThemeSelector = () => {
   const { theme, setTheme } = useTheme();
   
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {themeOptions.map((opt) => {
         const Icon = opt.icon;
         const isActive = theme === opt.value;
