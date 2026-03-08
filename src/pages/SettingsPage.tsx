@@ -256,25 +256,28 @@ export const SettingsPage: React.FC = () => {
 
       <Tabs defaultValue="account" className="space-y-4 sm:space-y-6">
         <TabsList className="flex flex-wrap gap-1 h-auto p-1 overflow-x-auto max-w-full">
-          <TabsTrigger value="account" className="gap-2">
-            <User className="w-4 h-4" />
+          <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm">
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Hesap
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="w-4 h-4" />
+          <TabsTrigger value="security" className="gap-1.5 text-xs sm:text-sm">
+            <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Güvenlik
           </TabsTrigger>
-          <TabsTrigger value="role" className="gap-2">
-            <BadgeCheck className="w-4 h-4" />
-            Rol Bilgisi
+          <TabsTrigger value="role" className="gap-1.5 text-xs sm:text-sm">
+            <BadgeCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Rol Bilgisi</span>
+            <span className="sm:hidden">Rol</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="w-4 h-4" />
-            Bildirimler
+          <TabsTrigger value="notifications" className="gap-1.5 text-xs sm:text-sm">
+            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Bildirimler</span>
+            <span className="sm:hidden">Bildir.</span>
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="gap-2">
-            <Settings className="w-4 h-4" />
-            Tercihler
+          <TabsTrigger value="preferences" className="gap-1.5 text-xs sm:text-sm">
+            <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Tercihler</span>
+            <span className="sm:hidden">Tercih</span>
           </TabsTrigger>
           {role === 'ogrenci' && (
             <TabsTrigger value="parent-code" className="gap-2">
