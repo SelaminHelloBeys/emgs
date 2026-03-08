@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Construction, Wrench, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { Construction, Wrench, ShieldAlert, AlertTriangle, Tablet } from 'lucide-react';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
