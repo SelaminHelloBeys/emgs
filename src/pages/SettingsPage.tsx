@@ -982,7 +982,7 @@ export const SettingsPage: React.FC = () => {
                   <p className="mt-2">Türkiye Cumhuriyeti yasaları çerçevesinde faaliyet göstermektedir.</p>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
