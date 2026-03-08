@@ -653,6 +653,85 @@ export const SettingsPage: React.FC = () => {
           </TabsContent>
         )}
 
+        {/* Teacher Parent Code Tab */}
+        {role === 'ogretmen' && (
+          <TabsContent value="teacher-parent-code" className="space-y-6">
+            <Card variant="elevated" className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Users className="w-7 h-7 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Veli Bağlantı Kodu</h3>
+                  <p className="text-sm text-muted-foreground">Bu kodu velilerle paylaşın. Veliler hesap oluştururken bu kodu kullanarak sizinle bağlantı kurabilirler.</p>
+                </div>
+              </div>
+
+              {teacherParentCode ? (
+                <div className="space-y-4">
+                  <div className="p-6 bg-muted/30 rounded-2xl text-center">
+                    <p className="text-sm text-muted-foreground mb-3">Öğretmen Veli Kodu</p>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className={cn(
+                        "font-mono text-3xl font-bold tracking-wider transition-all",
+                        showParentCode ? "text-foreground" : "text-foreground/0 bg-muted rounded select-none"
+                      )}>
+                        {showParentCode ? teacherParentCode : '●●●●-●●●●-●●●●'}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowParentCode(!showParentCode)}
+                      >
+                        {showParentCode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {showParentCode && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText(teacherParentCode);
+                        toast.success('Kod panoya kopyalandı');
+                      }}
+                    >
+                      Kodu Kopyala
+                    </Button>
+                  )}
+
+                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <div className="text-sm text-muted-foreground">
+                        <p className="font-medium text-foreground mb-1">Bilgi</p>
+                        <p>Bu kodu öğrenci velileriyle paylaşabilirsiniz. Veliler kayıt olurken bu kodu girerek hesaplarını sizinle ilişkilendirebilirler.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-muted mx-auto flex items-center justify-center">
+                    <Users className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">Henüz veli kodunuz yok</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Velilerin sizinle bağlantı kurabilmesi için bir veli kodu oluşturun.
+                    </p>
+                  </div>
+                  <Button onClick={handleGenerateTeacherCode} disabled={isGeneratingTeacherCode} className="gap-2">
+                    {isGeneratingTeacherCode ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                    Veli Kodu Oluştur
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+        )}
+
         {/* About Tab */}
         <TabsContent value="about" className="space-y-6">
           <Card variant="elevated" className="p-6">
