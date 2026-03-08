@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
 import { MobileNav } from './MobileNav';
+import { TabletBottomNav } from './TabletBottomNav';
 import { DevelopmentModeScreen } from '@/components/DevelopmentModeScreen';
 import { MaintenanceModeScreen } from '@/components/MaintenanceModeScreen';
 import { DangerModeScreen } from '@/components/DangerModeScreen';
