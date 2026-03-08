@@ -671,6 +671,10 @@ export type Database = {
         Returns: boolean
       }
       is_exam_creator: { Args: { p_exam_id: string }; Returns: boolean }
+      is_parent_of: {
+        Args: { _parent_id: string; _student_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
