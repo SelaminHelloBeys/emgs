@@ -709,6 +709,82 @@ export const SettingsPage: React.FC = () => {
           </TabsContent>
         )}
 
+        {/* Premium Tab */}
+        <TabsContent value="premium" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Basic Plan */}
+            <Card variant="default" className="p-6 relative">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-3xl">📚</span>
+                </div>
+                <h3 className="text-xl font-bold">Basic</h3>
+                <p className="text-muted-foreground text-sm mt-1">Temel eğitim özellikleri</p>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">0₺</span>
+                  <span className="text-muted-foreground">/ay</span>
+                </div>
+              </div>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Konu anlatım videoları</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Temel quizler</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Ödev takibi</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Deneme sınavları</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Başarı rozetleri</li>
+              </ul>
+              <div className="mt-6">
+                <Button variant="outline" className="w-full" disabled>
+                  Mevcut Plan
+                </Button>
+              </div>
+            </Card>
+
+            {/* Premium Plan */}
+            <Card variant="elevated" className="p-6 relative border-2 border-primary/30 shadow-lg">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full">
+                  ✨ Yakında
+                </span>
+              </div>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-3xl">💎</span>
+                </div>
+                <h3 className="text-xl font-bold">Premium</h3>
+                <p className="text-muted-foreground text-sm mt-1">Tüm özelliklere sınırsız erişim</p>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">59.99₺</span>
+                  <span className="text-muted-foreground">/ay</span>
+                </div>
+              </div>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Basic'teki tüm özellikler</li>
+                <li className="flex items-center gap-2"><span className="text-lg">🎥</span> Özel premium videolar</li>
+                <li className="flex items-center gap-2"><span className="text-lg">📖</span> Ek kaynaklar ve materyaller</li>
+                <li className="flex items-center gap-2"><span className="text-lg">📝</span> Özel deneme sınavları</li>
+                <li className="flex items-center gap-2"><span className="text-lg">🤖</span> Özel AI Koç desteği</li>
+                <li className="flex items-center gap-2"><span className="text-lg">🏆</span> Premium rozetler</li>
+                <li className="flex items-center gap-2"><span className="text-lg">📊</span> Detaylı analiz raporları</li>
+              </ul>
+              <div className="mt-6">
+                <Button className="w-full gap-2 opacity-70" disabled>
+                  🔒 Yakında Geliyor
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          <Card variant="default" className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <div className="text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Premium hakkında</p>
+                <p>Premium üyelik sistemi yakında aktif olacaktır. Şu an tüm özellikler ücretsiz olarak sunulmaktadır. Premium paketin lansmanında size bildirim gönderilecektir.</p>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
+
         {/* About Tab */}
         <TabsContent value="about" className="space-y-6">
           <Card variant="elevated" className="p-6">
