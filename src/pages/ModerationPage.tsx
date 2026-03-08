@@ -183,6 +183,10 @@ export const ModerationPage: React.FC = () => {
           <InviteCodePanel />
         </TabsContent>
 
+        <TabsContent value="verification" className="mt-6 animate-fade-in">
+          <VerificationManagementPanel />
+        </TabsContent>
+
         <TabsContent value="content" className="mt-6 animate-fade-in">
           <ContentManagementPanel />
         </TabsContent>
