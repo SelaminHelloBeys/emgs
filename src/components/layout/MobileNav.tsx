@@ -66,9 +66,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ open, onOpenChange }) => {
       <SheetContent side="left" className="w-[280px] p-0">
         <SheetHeader className="p-4 border-b border-border/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">E</span>
-            </div>
+            <img src="/emg-logo.png" alt="EMG Logo" className="w-10 h-10 rounded-xl object-contain" />
             <SheetTitle className="text-lg">EMG Platform</SheetTitle>
           </div>
         </SheetHeader>

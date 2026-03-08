@@ -118,10 +118,8 @@ export const TopNav: React.FC<TopNavProps> = ({ onMenuClick }) => {
             <Menu className="h-5 w-5" />
           </Button>
           
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">E</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <img src="/emg-logo.png" alt="EMG Logo" className="w-8 h-8 rounded-xl object-contain" />
             <span className="font-semibold text-lg hidden sm:block">EMG</span>
           </div>
         </div>

@@ -303,23 +303,23 @@ export const SettingsPage: React.FC = () => {
 
         {/* Account Tab */}
         <TabsContent value="account" className="space-y-6">
-          <Card variant="elevated" className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <User className="w-8 h-8 text-primary" />
+          <Card variant="elevated" className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="relative shrink-0">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <User className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
                 </div>
                 <button className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
                   <Camera className="w-3 h-3" />
                 </button>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">{profile?.name || 'Kullanıcı'}</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold truncate">{profile?.name || 'Kullanıcı'}</h2>
                   <VerificationTick tickType={tickType} size="md" />
                 </div>
-                <p className="text-muted-foreground">{user?.email}</p>
-                <div className="flex items-center gap-2 mt-2">
+                <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
                   <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
                     {role && roleLabels[role]}
                   </span>
@@ -331,7 +331,7 @@ export const SettingsPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              <Button variant="outline" onClick={() => setIsProfileDialogOpen(true)}>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setIsProfileDialogOpen(true)}>
                 Düzenle
               </Button>
             </div>

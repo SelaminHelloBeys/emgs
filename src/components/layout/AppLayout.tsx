@@ -152,7 +152,7 @@ export const AppLayout: React.FC = () => {
         <Sidebar collapsed={sidebarCollapsed} onCollapse={setSidebarCollapsed} />
         <main 
           className={cn(
-            "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 p-4 sm:p-6 lg:p-8",
+            "flex-1 min-h-[calc(100vh-4rem)] transition-all duration-300 p-3 sm:p-6 lg:p-8",
             sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
           )}
         >
