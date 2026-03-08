@@ -272,7 +272,7 @@ export const KonuAnlatimiPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xl">{selectedSubject.icon}</span>
-              <h1 className="text-2xl font-bold">{selectedSubject.name} - {selectedUnit.name}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold">{selectedSubject.name} - {selectedUnit.name}</h1>
             </div>
             <p className="text-muted-foreground">Konu anlatım videoları</p>
           </div>
