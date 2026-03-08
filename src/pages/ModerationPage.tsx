@@ -10,6 +10,7 @@ import { NotificationManagementPanel } from '@/components/admin/NotificationMana
 import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPanel';
 import { InviteCodePanel } from '@/components/admin/InviteCodePanel';
 import { VerificationManagementPanel } from '@/components/admin/VerificationManagementPanel';
+import { AdminTerminal } from '@/components/admin/AdminTerminal';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import {
