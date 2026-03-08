@@ -11,23 +11,15 @@ import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPane
 import { InviteCodePanel } from '@/components/admin/InviteCodePanel';
 import { VerificationManagementPanel } from '@/components/admin/VerificationManagementPanel';
 import { AdminTerminal } from '@/components/admin/AdminTerminal';
+import { SupportTicketsPanel } from '@/components/admin/SupportTicketsPanel';
+import { PlatformHealthPanel } from '@/components/admin/PlatformHealthPanel';
+import { ScheduledAnnouncementsPanel } from '@/components/admin/ScheduledAnnouncementsPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Shield,
-  Users,
-  Video,
-  Bell,
-  Settings,
-  FileText,
-  Activity,
-  Clock,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  KeyRound,
-  BadgeCheck,
-  Terminal,
+  Shield, Users, Video, Bell, Settings, FileText, Activity, Clock,
+  AlertTriangle, CheckCircle, Info, KeyRound, BadgeCheck, Terminal,
+  Headphones, HeartPulse, Megaphone,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +30,7 @@ interface LogEntry {
   message: string;
 }
 
-const TABS = ['overview', 'users', 'codes', 'verification', 'content', 'notifications', 'platform', 'exams', 'terminal'] as const;
+const TABS = ['overview', 'users', 'codes', 'verification', 'content', 'notifications', 'platform', 'exams', 'support', 'health', 'scheduled', 'terminal'] as const;
 type TabValue = typeof TABS[number];
 
 export const ModerationPage: React.FC = () => {
@@ -47,39 +39,28 @@ export const ModerationPage: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   const currentTab = (searchParams.get('tab') as TabValue) || 'overview';
-
-  const handleTabChange = (value: string) => {
-    setSearchParams({ tab: value });
-  };
+  const handleTabChange = (value: string) => setSearchParams({ tab: value });
 
   useEffect(() => {
     const generateLogs = async () => {
       const entries: LogEntry[] = [];
-      
-      const [profilesRes, lessonsRes, homeworkRes, announcementsRes] = await Promise.all([
+      const [profilesRes, lessonsRes, homeworkRes, announcementsRes, ticketsRes] = await Promise.all([
         supabase.from('profiles').select('name, created_at').order('created_at', { ascending: false }).limit(5),
         supabase.from('lessons').select('title, created_at').order('created_at', { ascending: false }).limit(5),
         supabase.from('homework_assignments').select('title, created_at').order('created_at', { ascending: false }).limit(5),
         supabase.from('announcements').select('title, created_at').order('created_at', { ascending: false }).limit(5),
+        supabase.from('support_tickets').select('subject, created_at').order('created_at', { ascending: false }).limit(5),
       ]);
 
-      profilesRes.data?.forEach(p => {
-        entries.push({ id: `user-${p.created_at}`, timestamp: p.created_at, type: 'info', message: `Yeni kullanıcı kaydı: ${p.name}` });
-      });
-      lessonsRes.data?.forEach(l => {
-        entries.push({ id: `lesson-${l.created_at}`, timestamp: l.created_at, type: 'success', message: `Yeni video yüklendi: ${l.title}` });
-      });
-      homeworkRes.data?.forEach(h => {
-        entries.push({ id: `hw-${h.created_at}`, timestamp: h.created_at, type: 'info', message: `Yeni ödev oluşturuldu: ${h.title}` });
-      });
-      announcementsRes.data?.forEach(a => {
-        entries.push({ id: `ann-${a.created_at}`, timestamp: a.created_at, type: 'warning', message: `Duyuru yayınlandı: ${a.title}` });
-      });
+      profilesRes.data?.forEach(p => entries.push({ id: `user-${p.created_at}`, timestamp: p.created_at, type: 'info', message: `Yeni kullanıcı: ${p.name}` }));
+      lessonsRes.data?.forEach(l => entries.push({ id: `lesson-${l.created_at}`, timestamp: l.created_at, type: 'success', message: `Video yüklendi: ${l.title}` }));
+      homeworkRes.data?.forEach(h => entries.push({ id: `hw-${h.created_at}`, timestamp: h.created_at, type: 'info', message: `Ödev oluşturuldu: ${h.title}` }));
+      announcementsRes.data?.forEach(a => entries.push({ id: `ann-${a.created_at}`, timestamp: a.created_at, type: 'warning', message: `Duyuru: ${a.title}` }));
+      ticketsRes.data?.forEach(t => entries.push({ id: `ticket-${t.created_at}`, timestamp: t.created_at, type: 'error', message: `Destek talebi: ${t.subject}` }));
 
       entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setLogs(entries.slice(0, 20));
     };
-
     generateLogs();
   }, []);
 
@@ -88,7 +69,7 @@ export const ModerationPage: React.FC = () => {
   const logIcon = (type: string) => {
     switch (type) {
       case 'warning': return <AlertTriangle className="w-4 h-4 text-amber-500" />;
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'success': return <CheckCircle className="w-4 h-4 text-emerald-500" />;
       case 'error': return <AlertTriangle className="w-4 h-4 text-red-500" />;
       default: return <Info className="w-4 h-4 text-blue-500" />;
     }
@@ -96,56 +77,30 @@ export const ModerationPage: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">Moderasyon Paneli</h1>
-            <p className="text-muted-foreground">Platform yönetimi ve kontrol merkezi</p>
-          </div>
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+          <Shield className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold">Moderasyon Paneli</h1>
+          <p className="text-muted-foreground">Platform yönetimi ve kontrol merkezi</p>
         </div>
       </div>
 
       <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="flex flex-wrap gap-1 h-auto p-1">
-          <TabsTrigger value="overview" className="gap-2">
-            <Activity className="w-4 h-4" />
-            Genel Bakış
-          </TabsTrigger>
-          <TabsTrigger value="users" className="gap-2">
-            <Users className="w-4 h-4" />
-            Kullanıcılar
-          </TabsTrigger>
-          <TabsTrigger value="codes" className="gap-2">
-            <KeyRound className="w-4 h-4" />
-            Davet Kodları
-          </TabsTrigger>
-          <TabsTrigger value="verification" className="gap-2">
-            <BadgeCheck className="w-4 h-4" />
-            Doğrulama
-          </TabsTrigger>
-          <TabsTrigger value="content" className="gap-2">
-            <Video className="w-4 h-4" />
-            İçerikler
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="w-4 h-4" />
-            Bildirimler
-          </TabsTrigger>
-          <TabsTrigger value="platform" className="gap-2">
-            <Settings className="w-4 h-4" />
-            Platform Modları
-          </TabsTrigger>
-          <TabsTrigger value="exams" className="gap-2">
-            <FileText className="w-4 h-4" />
-            Denemeler
-          </TabsTrigger>
-          <TabsTrigger value="terminal" className="gap-2">
-            <Terminal className="w-4 h-4" />
-            Terminal
-          </TabsTrigger>
+          <TabsTrigger value="overview" className="gap-1.5 text-xs"><Activity className="w-3.5 h-3.5" />Genel</TabsTrigger>
+          <TabsTrigger value="users" className="gap-1.5 text-xs"><Users className="w-3.5 h-3.5" />Kullanıcılar</TabsTrigger>
+          <TabsTrigger value="codes" className="gap-1.5 text-xs"><KeyRound className="w-3.5 h-3.5" />Kodlar</TabsTrigger>
+          <TabsTrigger value="verification" className="gap-1.5 text-xs"><BadgeCheck className="w-3.5 h-3.5" />Doğrulama</TabsTrigger>
+          <TabsTrigger value="content" className="gap-1.5 text-xs"><Video className="w-3.5 h-3.5" />İçerik</TabsTrigger>
+          <TabsTrigger value="notifications" className="gap-1.5 text-xs"><Bell className="w-3.5 h-3.5" />Bildirimler</TabsTrigger>
+          <TabsTrigger value="platform" className="gap-1.5 text-xs"><Settings className="w-3.5 h-3.5" />Modlar</TabsTrigger>
+          <TabsTrigger value="exams" className="gap-1.5 text-xs"><FileText className="w-3.5 h-3.5" />Denemeler</TabsTrigger>
+          <TabsTrigger value="support" className="gap-1.5 text-xs"><Headphones className="w-3.5 h-3.5" />Destek</TabsTrigger>
+          <TabsTrigger value="health" className="gap-1.5 text-xs"><HeartPulse className="w-3.5 h-3.5" />Sağlık</TabsTrigger>
+          <TabsTrigger value="scheduled" className="gap-1.5 text-xs"><Clock className="w-3.5 h-3.5" />Zamanlı</TabsTrigger>
+          <TabsTrigger value="terminal" className="gap-1.5 text-xs"><Terminal className="w-3.5 h-3.5" />Terminal</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 animate-fade-in">
@@ -154,25 +109,16 @@ export const ModerationPage: React.FC = () => {
               <Clock className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-lg">Platform Aktivite Logları</h3>
             </div>
-            
             {logs.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">Henüz log kaydı yok</p>
             ) : (
               <div className="space-y-2 max-h-[500px] overflow-y-auto">
                 {logs.map((log) => (
-                  <div
-                    key={log.id}
-                    className={cn(
-                      "flex items-start gap-3 p-3 rounded-xl transition-colors",
-                      "bg-muted/30 dark:bg-muted/10 hover:bg-muted/50 dark:hover:bg-muted/20"
-                    )}
-                  >
+                  <div key={log.id} className={cn("flex items-start gap-3 p-3 rounded-xl transition-colors", "bg-muted/30 dark:bg-muted/10 hover:bg-muted/50")}>
                     <div className="mt-0.5">{logIcon(log.type)}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{log.message}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {new Date(log.timestamp).toLocaleString('tr-TR')}
-                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{new Date(log.timestamp).toLocaleString('tr-TR')}</p>
                     </div>
                   </div>
                 ))}
@@ -181,38 +127,17 @@ export const ModerationPage: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="users" className="mt-6 animate-fade-in">
-          <UserManagementPanel />
-        </TabsContent>
-
-        <TabsContent value="codes" className="mt-6 animate-fade-in">
-          <InviteCodePanel />
-        </TabsContent>
-
-        <TabsContent value="verification" className="mt-6 animate-fade-in">
-          <VerificationManagementPanel />
-        </TabsContent>
-
-        <TabsContent value="content" className="mt-6 animate-fade-in">
-          <ContentManagementPanel />
-        </TabsContent>
-
-        <TabsContent value="notifications" className="mt-6 animate-fade-in">
-          <NotificationManagementPanel />
-        </TabsContent>
-
-        <TabsContent value="platform" className="mt-6 space-y-6 animate-fade-in">
-          <PlatformModesPanel />
-          <PageMaintenancePanel />
-        </TabsContent>
-
-        <TabsContent value="exams" className="mt-6 animate-fade-in">
-          <ExamParticipationPanel />
-        </TabsContent>
-
-        <TabsContent value="terminal" className="mt-6 animate-fade-in">
-          <AdminTerminal />
-        </TabsContent>
+        <TabsContent value="users" className="mt-6 animate-fade-in"><UserManagementPanel /></TabsContent>
+        <TabsContent value="codes" className="mt-6 animate-fade-in"><InviteCodePanel /></TabsContent>
+        <TabsContent value="verification" className="mt-6 animate-fade-in"><VerificationManagementPanel /></TabsContent>
+        <TabsContent value="content" className="mt-6 animate-fade-in"><ContentManagementPanel /></TabsContent>
+        <TabsContent value="notifications" className="mt-6 animate-fade-in"><NotificationManagementPanel /></TabsContent>
+        <TabsContent value="platform" className="mt-6 space-y-6 animate-fade-in"><PlatformModesPanel /><PageMaintenancePanel /></TabsContent>
+        <TabsContent value="exams" className="mt-6 animate-fade-in"><ExamParticipationPanel /></TabsContent>
+        <TabsContent value="support" className="mt-6 animate-fade-in"><SupportTicketsPanel /></TabsContent>
+        <TabsContent value="health" className="mt-6 animate-fade-in"><PlatformHealthPanel /></TabsContent>
+        <TabsContent value="scheduled" className="mt-6 animate-fade-in"><ScheduledAnnouncementsPanel /></TabsContent>
+        <TabsContent value="terminal" className="mt-6 animate-fade-in"><AdminTerminal /></TabsContent>
       </Tabs>
     </div>
   );

@@ -62,6 +62,8 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          is_published: boolean
+          scheduled_at: string | null
           title: string
           type: string
         }
@@ -70,6 +72,8 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          is_published?: boolean
+          scheduled_at?: string | null
           title: string
           type?: string
         }
@@ -78,6 +82,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          is_published?: boolean
+          scheduled_at?: string | null
           title?: string
           type?: string
         }
@@ -425,6 +431,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      support_tickets: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          id: string
+          message: string
+          priority: string
+          responded_by: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          priority?: string
+          responded_by?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          priority?: string
+          responded_by?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       teacher_parent_codes: {
         Row: {
