@@ -142,8 +142,11 @@ export const ModerationPage: React.FC = () => {
             <FileText className="w-4 h-4" />
             Denemeler
           </TabsTrigger>
+          <TabsTrigger value="terminal" className="gap-2">
+            <Terminal className="w-4 h-4" />
+            Terminal
+          </TabsTrigger>
         </TabsList>
-        {/* Add terminal tab trigger before closing */}
 
         <TabsContent value="overview" className="space-y-6 animate-fade-in">
           <Card className="p-6 border-0 bg-card/80 dark:bg-card/50 backdrop-blur-sm">
