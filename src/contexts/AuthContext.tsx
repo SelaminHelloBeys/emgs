@@ -9,7 +9,8 @@ export type UserRole =
   | 'mudur_yardimcisi'
   | 'rehber'
   | 'ogretmen'
-  | 'ogrenci';
+  | 'ogrenci'
+  | 'veli';
 
 export interface Profile {
   id: string;

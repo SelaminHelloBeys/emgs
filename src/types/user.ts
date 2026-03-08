@@ -5,7 +5,8 @@ export type UserRole =
   | 'mudur_yardimcisi' // Vice Principal
   | 'rehber'        // Guidance Counselor
   | 'ogretmen'      // Teacher
-  | 'ogrenci';      // Student
+  | 'ogrenci'       // Student
+  | 'veli';         // Parent
 
 export interface User {
   id: string;
@@ -29,6 +30,7 @@ export const roleLabels: Record<UserRole, string> = {
   rehber: 'Rehber Öğretmeni',
   ogretmen: 'Öğretmen',
   ogrenci: 'Öğrenci',
+  veli: 'Veli',
 };
 
 export const roleDescriptions: Record<UserRole, string> = {
@@ -39,6 +41,7 @@ export const roleDescriptions: Record<UserRole, string> = {
   rehber: 'Öğrenci gelişim ve destek',
   ogretmen: 'Ders ve içerik yönetimi',
   ogrenci: 'Öğrenme ve gelişim',
+  veli: 'Çocuğunuzun gelişimini takip edin',
 };
 
 export const roleIcons: Record<UserRole, string> = {
@@ -49,4 +52,29 @@ export const roleIcons: Record<UserRole, string> = {
   rehber: 'Heart',
   ogretmen: 'BookOpen',
   ogrenci: 'Backpack',
+  veli: 'Users',
+};
+
+// Verification tick colors by role
+export type VerificationTickType = 'blue' | 'black' | 'red' | 'yellow' | 'green' | 'none';
+
+export const getVerificationTick = (role: UserRole, isVerified: boolean): VerificationTickType => {
+  if (!isVerified) return 'none';
+  switch (role) {
+    case 'yonetici':
+    case 'admin':
+      return 'black';
+    case 'ogretmen':
+      return 'red';
+    case 'veli':
+      return 'yellow';
+    case 'mudur':
+    case 'mudur_yardimcisi':
+    case 'rehber':
+      return 'green';
+    case 'ogrenci':
+      return 'blue';
+    default:
+      return 'none';
+  }
 };
