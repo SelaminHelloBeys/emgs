@@ -11,6 +11,8 @@ export interface Announcement {
   created_by: string;
   created_at: string;
   creator_name?: string;
+  creator_role?: string;
+  creator_verified?: boolean;
 }
 
 export const useAnnouncements = () => {
@@ -33,17 +35,34 @@ export const useAnnouncements = () => {
     if (error) {
       console.error('Error fetching announcements:', error);
       toast.error('Duyurular yüklenirken hata oluştu');
-    } else {
-      setAnnouncements((data || []).map(item => ({
-        id: item.id,
-        title: item.title,
-        content: item.content,
-        type: item.type as 'info' | 'warning' | 'success',
-        created_by: item.created_by,
-        created_at: item.created_at,
-        creator_name: 'Yönetici'
-      })));
+      setIsLoading(false);
+      return;
     }
+
+    // Fetch creator profiles and roles
+    const creatorIds = [...new Set((data || []).map(a => a.created_by))];
+    
+    const [profilesRes, rolesRes, verificationsRes] = await Promise.all([
+      supabase.from('profiles').select('user_id, name').in('user_id', creatorIds),
+      supabase.from('user_roles').select('user_id, role').in('user_id', creatorIds),
+      supabase.from('user_verifications').select('user_id, is_verified').in('user_id', creatorIds),
+    ]);
+
+    const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.name]));
+    const roleMap = new Map((rolesRes.data || []).map(r => [r.user_id, r.role]));
+    const verificationMap = new Map((verificationsRes.data || []).map(v => [v.user_id, v.is_verified]));
+
+    setAnnouncements((data || []).map(item => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      type: item.type as 'info' | 'warning' | 'success',
+      created_by: item.created_by,
+      created_at: item.created_at,
+      creator_name: profileMap.get(item.created_by) || 'Yönetici',
+      creator_role: roleMap.get(item.created_by) || undefined,
+      creator_verified: verificationMap.get(item.created_by) || false,
+    })));
     setIsLoading(false);
   };
 
@@ -72,7 +91,6 @@ export const useAnnouncements = () => {
   useEffect(() => {
     fetchAnnouncements();
 
-    // Subscribe to realtime updates
     const channel = supabase
       .channel('announcements-changes')
       .on(

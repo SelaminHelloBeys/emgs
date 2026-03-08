@@ -58,7 +58,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 type Language = 'tr' | 'en' | 'de';
 
@@ -135,7 +135,6 @@ export const SettingsPage: React.FC = () => {
   const [showParentCode, setShowParentCode] = useState(false);
   const [parentCode, setParentCode] = useState<string | null>(null);
   const [teacherParentCode, setTeacherParentCode] = useState<string | null>(null);
-  const [isGeneratingTeacherCode, setIsGeneratingTeacherCode] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
   const [passwordForm, setPasswordForm] = useState({
@@ -163,13 +162,14 @@ export const SettingsPage: React.FC = () => {
     }
   }, [user, role]);
 
-  // Fetch teacher parent code
+  // Fetch teacher parent code (admin-assigned)
   useEffect(() => {
     if (user && role === 'ogretmen') {
       supabase
         .from('teacher_parent_codes')
         .select('code')
         .eq('teacher_user_id', user.id)
+        .eq('is_used', false)
         .maybeSingle()
         .then(({ data }) => {
           if (data) setTeacherParentCode(data.code);
@@ -237,30 +237,7 @@ export const SettingsPage: React.FC = () => {
     setIsLoading(false);
   };
 
-  const handleGenerateTeacherCode = async () => {
-    if (!user) return;
-    setIsGeneratingTeacherCode(true);
-    
-    // Generate cryptographic code
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 12; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const formattedCode = code.slice(0, 4) + '-' + code.slice(4, 8) + '-' + code.slice(8, 12);
-
-    const { error } = await supabase
-      .from('teacher_parent_codes')
-      .insert({ teacher_user_id: user.id, code: formattedCode } as any);
-
-    if (error) {
-      toast.error('Kod oluşturulamadı');
-    } else {
-      setTeacherParentCode(formattedCode);
-      toast.success('Veli kodu başarıyla oluşturuldu!');
-    }
-    setIsGeneratingTeacherCode(false);
-  };
+  
 
   const handleLanguageChange = (value: Language) => {
     setLanguage(value);
@@ -311,6 +288,10 @@ export const SettingsPage: React.FC = () => {
               Veli Kodum
             </TabsTrigger>
           )}
+          <TabsTrigger value="premium" className="gap-2">
+            <span className="text-lg">💎</span>
+            Premium
+          </TabsTrigger>
           <TabsTrigger value="about" className="gap-2">
             <Info className="w-4 h-4" />
             Hakkında
@@ -717,20 +698,92 @@ export const SettingsPage: React.FC = () => {
                     <Users className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium mb-1">Henüz veli kodunuz yok</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Velilerin sizinle bağlantı kurabilmesi için bir veli kodu oluşturun.
+                    <p className="font-medium mb-1">Henüz veli kodunuz atanmadı</p>
+                    <p className="text-sm text-muted-foreground">
+                      Veli kodları yöneticiler tarafından oluşturulup atanmaktadır. Lütfen okul yöneticinize başvurun.
                     </p>
                   </div>
-                  <Button onClick={handleGenerateTeacherCode} disabled={isGeneratingTeacherCode} className="gap-2">
-                    {isGeneratingTeacherCode ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-                    Veli Kodu Oluştur
-                  </Button>
                 </div>
               )}
             </Card>
           </TabsContent>
         )}
+
+        {/* Premium Tab */}
+        <TabsContent value="premium" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Basic Plan */}
+            <Card variant="default" className="p-6 relative">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-muted mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-3xl">📚</span>
+                </div>
+                <h3 className="text-xl font-bold">Basic</h3>
+                <p className="text-muted-foreground text-sm mt-1">Temel eğitim özellikleri</p>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">0₺</span>
+                  <span className="text-muted-foreground">/ay</span>
+                </div>
+              </div>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Konu anlatım videoları</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Temel quizler</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Ödev takibi</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Deneme sınavları</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Başarı rozetleri</li>
+              </ul>
+              <div className="mt-6">
+                <Button variant="outline" className="w-full" disabled>
+                  Mevcut Plan
+                </Button>
+              </div>
+            </Card>
+
+            {/* Premium Plan */}
+            <Card variant="elevated" className="p-6 relative border-2 border-primary/30 shadow-lg">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full">
+                  ✨ Yakında
+                </span>
+              </div>
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-3xl">💎</span>
+                </div>
+                <h3 className="text-xl font-bold">Premium</h3>
+                <p className="text-muted-foreground text-sm mt-1">Tüm özelliklere sınırsız erişim</p>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">59.99₺</span>
+                  <span className="text-muted-foreground">/ay</span>
+                </div>
+              </div>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-primary" /> Basic'teki tüm özellikler</li>
+                <li className="flex items-center gap-2"><span className="text-lg">🎥</span> Özel premium videolar</li>
+                <li className="flex items-center gap-2"><span className="text-lg">📖</span> Ek kaynaklar ve materyaller</li>
+                <li className="flex items-center gap-2"><span className="text-lg">📝</span> Özel deneme sınavları</li>
+                <li className="flex items-center gap-2"><span className="text-lg">🤖</span> Özel AI Koç desteği</li>
+                <li className="flex items-center gap-2"><span className="text-lg">🏆</span> Premium rozetler</li>
+                <li className="flex items-center gap-2"><span className="text-lg">📊</span> Detaylı analiz raporları</li>
+              </ul>
+              <div className="mt-6">
+                <Button className="w-full gap-2 opacity-70" disabled>
+                  🔒 Yakında Geliyor
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          <Card variant="default" className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <div className="text-sm text-muted-foreground">
+                <p className="font-medium text-foreground mb-1">Premium hakkında</p>
+                <p>Premium üyelik sistemi yakında aktif olacaktır. Şu an tüm özellikler ücretsiz olarak sunulmaktadır. Premium paketin lansmanında size bildirim gönderilecektir.</p>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
 
         {/* About Tab */}
         <TabsContent value="about" className="space-y-6">
@@ -745,7 +798,7 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
 
-            <ScrollArea className="max-h-[70vh]">
+            <div className="overflow-y-auto max-h-[70vh] pr-2">
               <div className="space-y-5 pr-2">
                 {/* 1. Platform Info */}
                 <div className="p-5 bg-primary/5 border border-primary/20 rounded-xl">
@@ -1005,7 +1058,7 @@ export const SettingsPage: React.FC = () => {
                   <p className="mt-2">Türkiye Cumhuriyeti yasaları çerçevesinde faaliyet göstermektedir.</p>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
