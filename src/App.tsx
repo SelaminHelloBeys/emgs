@@ -57,6 +57,7 @@ const App = () => (
                   <Route path="/rozetler" element={<BadgesPage />} />
                   <Route path="/moderation" element={<ModerationPage />} />
                   <Route path="/optik-okuyucu" element={<OpticalReaderPage />} />
+                  <Route path="/cocuk-takibi" element={<ParentTrackingPage />} />
                 </Route>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="*" element={<NotFound />} />

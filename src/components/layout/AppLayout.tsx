@@ -58,6 +58,7 @@ export const AppLayout: React.FC = () => {
           development_mode: false,
           maintenance_mode: false,
           danger_detection_mode: false,
+          tablet_mode: false,
         };
         let pwd: string | null = null;
         data.forEach((setting: any) => {
