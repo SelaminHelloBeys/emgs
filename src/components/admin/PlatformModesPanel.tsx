@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Construction, Wrench, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { Construction, Wrench, ShieldAlert, AlertTriangle, Tablet } from 'lucide-react';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,6 +40,12 @@ const modeConfig: Record<string, {
     description: 'Aktifken öğrenciler platforma girmek için şifre girmek zorundadır.',
     icon: <ShieldAlert className="h-5 w-5" />,
     color: 'bg-red-500',
+  },
+  tablet_mode: {
+    label: 'Tablet Modu',
+    description: 'Tüm arayüz elemanları büyütülür, kolay okunur ve ulaşılır hale gelir.',
+    icon: <Tablet className="h-5 w-5" />,
+    color: 'bg-purple-500',
   },
 };
 

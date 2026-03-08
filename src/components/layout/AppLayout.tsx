@@ -17,6 +17,7 @@ interface PlatformModes {
   development_mode: boolean;
   maintenance_mode: boolean;
   danger_detection_mode: boolean;
+  tablet_mode: boolean;
 }
 
 export const AppLayout: React.FC = () => {
@@ -30,6 +31,7 @@ export const AppLayout: React.FC = () => {
     development_mode: false,
     maintenance_mode: false,
     danger_detection_mode: false,
+    tablet_mode: false,
   });
   const [dangerPassword, setDangerPassword] = useState<string | null>(null);
   const [dangerBypassed, setDangerBypassed] = useState(false);
@@ -56,6 +58,7 @@ export const AppLayout: React.FC = () => {
           development_mode: false,
           maintenance_mode: false,
           danger_detection_mode: false,
+          tablet_mode: false,
         };
         let pwd: string | null = null;
         data.forEach((setting: any) => {
@@ -108,6 +111,24 @@ export const AppLayout: React.FC = () => {
       } catch {}
     }
   }, [isAuthenticated, user, isLoadingModes, showLoadingScreen]);
+
+  // Apply admin theme and tablet mode classes to html element
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isAdmin) {
+      html.classList.add('admin-theme');
+    } else {
+      html.classList.remove('admin-theme');
+    }
+    if (platformModes.tablet_mode) {
+      html.classList.add('tablet-mode');
+    } else {
+      html.classList.remove('tablet-mode');
+    }
+    return () => {
+      html.classList.remove('admin-theme', 'tablet-mode');
+    };
+  }, [isAdmin, platformModes.tablet_mode]);
 
   if (!isAuthenticated || !user || isLoadingModes || showLoadingScreen) {
     return (

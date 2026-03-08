@@ -83,6 +83,60 @@
     --sidebar-ring: 211 100% 50%;
   }
 
+  /* Admin theme - red tones */
+  .admin-theme {
+    --primary: 0 75% 50%;
+    --accent: 0 75% 50%;
+    --ring: 0 75% 50%;
+    --apple-blue: 0 75% 50%;
+    --shadow-glow: 0 0 24px hsla(0, 75%, 50%, 0.25);
+    --sidebar-primary: 0 75% 50%;
+    --sidebar-ring: 0 75% 50%;
+  }
+
+  .admin-theme.dark {
+    --primary: 0 75% 55%;
+    --accent: 0 75% 55%;
+    --ring: 0 75% 55%;
+    --apple-blue: 0 75% 55%;
+    --shadow-glow: 0 0 24px hsla(0, 75%, 55%, 0.3);
+    --sidebar-primary: 0 75% 55%;
+    --sidebar-ring: 0 75% 55%;
+  }
+
+  /* Tablet mode - everything bigger */
+  .tablet-mode {
+    font-size: 18px;
+  }
+
+  .tablet-mode button,
+  .tablet-mode a,
+  .tablet-mode input,
+  .tablet-mode select,
+  .tablet-mode textarea {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .tablet-mode .text-sm { font-size: 1rem; }
+  .tablet-mode .text-xs { font-size: 0.875rem; }
+  .tablet-mode .text-lg { font-size: 1.375rem; }
+  .tablet-mode .text-xl { font-size: 1.5rem; }
+  .tablet-mode .text-2xl { font-size: 1.875rem; }
+  .tablet-mode .text-3xl { font-size: 2.25rem; }
+  .tablet-mode .p-3 { padding: 1rem; }
+  .tablet-mode .p-4 { padding: 1.25rem; }
+  .tablet-mode .p-6 { padding: 1.75rem; }
+  .tablet-mode .gap-2 { gap: 0.75rem; }
+  .tablet-mode .gap-3 { gap: 1rem; }
+  .tablet-mode .gap-4 { gap: 1.25rem; }
+  .tablet-mode .rounded-xl { border-radius: 1.25rem; }
+  .tablet-mode .rounded-2xl { border-radius: 1.5rem; }
+  .tablet-mode .w-10 { width: 3rem; }
+  .tablet-mode .h-10 { height: 3rem; }
+  .tablet-mode .w-5 { width: 1.5rem; }
+  .tablet-mode .h-5 { height: 1.5rem; }
+
   .dark {
     --background: 0 0% 7%;
     --foreground: 0 0% 93%;

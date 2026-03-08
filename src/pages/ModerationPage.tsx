@@ -10,6 +10,7 @@ import { NotificationManagementPanel } from '@/components/admin/NotificationMana
 import { ExamParticipationPanel } from '@/components/admin/ExamParticipationPanel';
 import { InviteCodePanel } from '@/components/admin/InviteCodePanel';
 import { VerificationManagementPanel } from '@/components/admin/VerificationManagementPanel';
+import { AdminTerminal } from '@/components/admin/AdminTerminal';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -26,6 +27,7 @@ import {
   Info,
   KeyRound,
   BadgeCheck,
+  Terminal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -36,7 +38,7 @@ interface LogEntry {
   message: string;
 }
 
-const TABS = ['overview', 'users', 'codes', 'verification', 'content', 'notifications', 'platform', 'exams'] as const;
+const TABS = ['overview', 'users', 'codes', 'verification', 'content', 'notifications', 'platform', 'exams', 'terminal'] as const;
 type TabValue = typeof TABS[number];
 
 export const ModerationPage: React.FC = () => {
@@ -140,6 +142,10 @@ export const ModerationPage: React.FC = () => {
             <FileText className="w-4 h-4" />
             Denemeler
           </TabsTrigger>
+          <TabsTrigger value="terminal" className="gap-2">
+            <Terminal className="w-4 h-4" />
+            Terminal
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 animate-fade-in">
@@ -202,6 +208,10 @@ export const ModerationPage: React.FC = () => {
 
         <TabsContent value="exams" className="mt-6 animate-fade-in">
           <ExamParticipationPanel />
+        </TabsContent>
+
+        <TabsContent value="terminal" className="mt-6 animate-fade-in">
+          <AdminTerminal />
         </TabsContent>
       </Tabs>
     </div>
