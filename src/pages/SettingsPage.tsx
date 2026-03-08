@@ -305,6 +305,12 @@ export const SettingsPage: React.FC = () => {
               Veli Kodum
             </TabsTrigger>
           )}
+          {role === 'ogretmen' && (
+            <TabsTrigger value="teacher-parent-code" className="gap-2">
+              <Users className="w-4 h-4" />
+              Veli Kodum
+            </TabsTrigger>
+          )}
           <TabsTrigger value="about" className="gap-2">
             <Info className="w-4 h-4" />
             Hakkında
