@@ -120,6 +120,10 @@ export const ModerationPage: React.FC = () => {
             <KeyRound className="w-4 h-4" />
             Davet Kodları
           </TabsTrigger>
+          <TabsTrigger value="verification" className="gap-2">
+            <BadgeCheck className="w-4 h-4" />
+            Doğrulama
+          </TabsTrigger>
           <TabsTrigger value="content" className="gap-2">
             <Video className="w-4 h-4" />
             İçerikler
