@@ -22,6 +22,7 @@ import { DenemeDetailPage } from "./pages/DenemeDetailPage";
 import { BadgesPage } from "./pages/BadgesPage";
 import { ModerationPage } from "./pages/ModerationPage";
 import { OpticalReaderPage } from "./pages/OpticalReaderPage";
+import { ParentTrackingPage } from "./pages/ParentTrackingPage";
 import NotFound from "./pages/NotFound";
 
 // Layout

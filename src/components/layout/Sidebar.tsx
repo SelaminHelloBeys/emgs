@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
   { icon: Upload, label: 'İçerik Yükle', href: '/upload', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },
   { icon: ScanLine, label: 'Optik Okuyucu', href: '/optik-okuyucu', roles: ['yonetici', 'admin', 'ogretmen'] },
   { icon: Heart, label: 'Öğrenci Takibi', href: '/student-tracking', roles: ['rehber'] },
+  { icon: Heart, label: 'Çocuk Takibi', href: '/cocuk-takibi', roles: ['veli'] },
   { icon: Shield, label: 'Moderasyon', href: '/moderation', roles: ['yonetici', 'admin'] },
   { icon: GraduationCap, label: 'Okul Yönetimi', href: '/school-management', roles: ['mudur', 'mudur_yardimcisi'] },
   { icon: BarChart3, label: 'Analitik', href: '/analytics', roles: ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi'], adminOnly: true },

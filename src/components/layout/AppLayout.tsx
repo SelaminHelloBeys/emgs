@@ -17,6 +17,7 @@ interface PlatformModes {
   development_mode: boolean;
   maintenance_mode: boolean;
   danger_detection_mode: boolean;
+  tablet_mode: boolean;
 }
 
 export const AppLayout: React.FC = () => {
