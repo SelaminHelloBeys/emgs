@@ -38,7 +38,7 @@ interface LogEntry {
   message: string;
 }
 
-const TABS = ['overview', 'users', 'codes', 'verification', 'content', 'notifications', 'platform', 'exams'] as const;
+const TABS = ['overview', 'users', 'codes', 'verification', 'content', 'notifications', 'platform', 'exams', 'terminal'] as const;
 type TabValue = typeof TABS[number];
 
 export const ModerationPage: React.FC = () => {
