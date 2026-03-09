@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Stagger, MotionItem, HoverLift, appleSpring } from '@/components/motion/MotionElements';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,7 +138,11 @@ export const StudentDashboard: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="animate-slide-up">
+      <motion.div
+        initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        transition={appleSpring}
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
@@ -161,49 +167,54 @@ export const StudentDashboard: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && filteredLessons.length > 0 && (
-            <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-60 overflow-auto">
-              {filteredLessons.slice(0, 5).map(lesson => (
-                <button
-                  key={lesson.id}
-                  className="w-full p-3 text-left hover:bg-muted flex items-center gap-3"
-                  onClick={() => { navigate('/konu-anlatimi'); setSearchQuery(''); }}
-                >
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Play className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{lesson.title}</p>
-                    <p className="text-xs text-muted-foreground">{lesson.subject}</p>
-                  </div>
-                </button>
-              ))}
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={appleSpring}
+            >
+              <Card className="absolute top-full left-0 right-0 mt-2 z-50 max-h-60 overflow-auto">
+                {filteredLessons.slice(0, 5).map(lesson => (
+                  <button
+                    key={lesson.id}
+                    className="w-full p-3 text-left hover:bg-muted flex items-center gap-3"
+                    onClick={() => { navigate('/konu-anlatimi'); setSearchQuery(''); }}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Play className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{lesson.title}</p>
+                      <p className="text-xs text-muted-foreground">{lesson.subject}</p>
+                    </div>
+                  </button>
+                ))}
+              </Card>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsData.map((stat, index) => {
+      <Stagger className="grid grid-cols-2 lg:grid-cols-4 gap-4" staggerDelay={0.08}>
+        {statsData.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card
-              key={stat.label}
-              variant="stat"
-              className="p-5 animate-fade-in hover:scale-[1.03] transition-transform duration-300"
-              style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold mb-1">{stat.value}</div>
-              <div className="text-sm text-muted-foreground">{stat.label}</div>
-            </Card>
+            <MotionItem key={stat.label}>
+              <HoverLift>
+                <Card variant="stat" className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold mb-1">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </Card>
+              </HoverLift>
+            </MotionItem>
           );
         })}
-      </div>
+      </Stagger>
 
       {/* Deneme Stats & LGS */}
       {participatedExams.length > 0 && (
