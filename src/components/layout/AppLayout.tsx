@@ -179,14 +179,14 @@ export const AppLayout: React.FC = () => {
             !isTabletMode && (sidebarCollapsed ? "lg:ml-20" : "lg:ml-64")
           )}
         >
-          <div className={cn("mx-auto animate-fade-in", isTabletMode ? "max-w-full px-2" : "max-w-7xl")}>
+          <div className={cn("mx-auto", isTabletMode ? "max-w-full px-2" : "max-w-7xl")}>
             {maintenancePage ? (
               <PageMaintenanceScreen 
                 pageName={maintenancePage.page_name} 
                 message={maintenancePage.message} 
               />
             ) : (
-              <Outlet />
+              <AnimatedOutlet />
             )}
           </div>
         </main>
