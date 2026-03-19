@@ -172,7 +172,7 @@ export const InvitePage: React.FC = () => {
                     className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"
                     variants={iconVariants}
                   >
-                    <motion.div variants={pulseVariants} animate="animate">
+                    <motion.div animate={pulseAnimation}>
                       <CheckCircle className="w-8 h-8 text-primary" />
                     </motion.div>
                   </motion.div>
