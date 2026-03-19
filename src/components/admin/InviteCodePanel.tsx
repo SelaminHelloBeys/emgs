@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Copy, Trash2, Loader2, KeyRound, Shield, Users } from 'lucide-react';
+import { Plus, Copy, Trash2, Loader2, KeyRound, Shield, Users, Link2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
