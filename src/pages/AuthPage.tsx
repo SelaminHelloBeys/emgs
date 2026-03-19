@@ -114,6 +114,7 @@ export const AuthPage: React.FC = () => {
   const [verificationError, setVerificationError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [animKey, setAnimKey] = useState(0);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   
   const { 
     signIn, 
@@ -126,6 +127,16 @@ export const AuthPage: React.FC = () => {
     role 
   } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Auto-fill from invite link
+  useEffect(() => {
+    const davetCode = searchParams.get('davet');
+    if (davetCode) {
+      setInviteCode(davetCode);
+      setMode('signup');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setAnimKey(prev => prev + 1);
