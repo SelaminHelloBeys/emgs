@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AnimatedOutlet } from '@/components/motion/AnimatedOutlet';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -134,11 +135,36 @@ export const AppLayout: React.FC = () => {
 
   if (!isAuthenticated || !user || isLoadingModes || showLoadingScreen) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
-        <img src="/emg-logo.png" alt="EMG Logo" className="w-16 h-16 rounded-2xl shadow-lg object-contain" />
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">EMG yükleniyor...</p>
-      </div>
+      <motion.div
+        className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, filter: 'blur(8px)' }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <motion.img
+          src="/emg-logo.png"
+          alt="EMG Logo"
+          className="w-16 h-16 rounded-2xl shadow-lg object-contain"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.1 }}
+        />
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        >
+          <Loader2 className="w-6 h-6 text-primary" />
+        </motion.div>
+        <motion.p
+          className="text-sm text-muted-foreground"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+        >
+          EMG yükleniyor...
+        </motion.p>
+      </motion.div>
     );
   }
 
