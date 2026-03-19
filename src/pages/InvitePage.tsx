@@ -47,14 +47,12 @@ const iconVariants = {
   },
 };
 
-const pulseVariants = {
-  animate: {
-    scale: [1, 1.05, 1],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: 'easeInOut',
-    },
+const pulseAnimation = {
+  scale: [1, 1.05, 1],
+  transition: {
+    duration: 2,
+    repeat: Infinity,
+    ease: 'easeInOut' as const,
   },
 };
 
