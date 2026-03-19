@@ -46,6 +46,7 @@ const App = () => (
               
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/davet/:code" element={<InvitePage />} />
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/konu-anlatimi" element={<KonuAnlatimiPage />} />
