@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import emgLogo from '@/assets/emg-logo.png';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { roleLabels, roleDescriptions } from '@/types/user';
