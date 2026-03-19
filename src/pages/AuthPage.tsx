@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import emgLogo from '@/assets/emg-logo.png';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
 import { roleLabels, roleDescriptions } from '@/types/user';
@@ -114,6 +114,7 @@ export const AuthPage: React.FC = () => {
   const [verificationError, setVerificationError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [animKey, setAnimKey] = useState(0);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   
   const { 
     signIn, 
@@ -126,6 +127,16 @@ export const AuthPage: React.FC = () => {
     role 
   } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Auto-fill from invite link
+  useEffect(() => {
+    const davetCode = searchParams.get('davet');
+    if (davetCode) {
+      setInviteCode(davetCode);
+      setMode('signup');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setAnimKey(prev => prev + 1);
@@ -249,14 +260,44 @@ export const AuthPage: React.FC = () => {
     if (selectedRole === 'veli' && parentCode) {
       const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
       if (signInData?.user) {
-        // Update role to veli
         await supabase.from('user_roles').delete().eq('user_id', signInData.user.id);
         await supabase.from('user_roles').insert({ user_id: signInData.user.id, role: 'veli' as any });
-        // Mark parent code as used
         await supabase.from('parent_codes').update({ 
           is_used: true, 
           parent_user_id: signInData.user.id 
         } as any).eq('code', parentCode.trim().toUpperCase());
+      }
+      return;
+    }
+
+    // For invite code users, apply the code after signup
+    if (inviteCode) {
+      const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInData?.user) {
+        const { data: codeData } = await supabase
+          .from('admin_access_codes')
+          .select('*')
+          .eq('code', inviteCode)
+          .eq('is_used', false)
+          .maybeSingle();
+        
+        if (codeData) {
+          // Update role to target role
+          await supabase.from('user_roles').delete().eq('user_id', signInData.user.id);
+          await supabase.from('user_roles').insert({ user_id: signInData.user.id, role: codeData.target_role as any });
+          // Update profile with target info
+          const updateData: any = {};
+          if (codeData.target_school) updateData.school_name = codeData.target_school;
+          if (codeData.target_class) updateData.class = codeData.target_class;
+          if (Object.keys(updateData).length > 0) {
+            await supabase.from('profiles').update(updateData).eq('user_id', signInData.user.id);
+          }
+          // Mark code as used
+          await supabase.from('admin_access_codes').update({ 
+            is_used: true, 
+            used_by: signInData.user.id 
+          } as any).eq('id', codeData.id);
+        }
       }
       return;
     }

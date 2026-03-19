@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Copy, Trash2, Loader2, KeyRound, Shield, Users } from 'lucide-react';
+import { Plus, Copy, Trash2, Loader2, KeyRound, Shield, Users, Link2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { tr } from 'date-fns/locale';
@@ -166,7 +166,14 @@ export const InviteCodePanel: React.FC = () => {
       console.error('Error creating code:', error);
       toast.error('Kod oluşturulamadı');
     } else {
-      toast.success(`Kod oluşturuldu: ${code}`);
+      const link = getInviteLink(code);
+      navigator.clipboard.writeText(link);
+      toast.success(
+        <div className="space-y-1">
+          <p className="font-medium">Kod oluşturuldu ve link kopyalandı!</p>
+          <p className="text-xs text-muted-foreground font-mono break-all">{link}</p>
+        </div>
+      );
       setFormData({ target_name: '', target_role: 'ogrenci', target_school: '', target_class: '' });
       setIsOpen(false);
       fetchCodes();
@@ -222,9 +229,18 @@ export const InviteCodePanel: React.FC = () => {
     }
   };
 
+  const getInviteLink = (code: string) => {
+    return `${window.location.origin}/davet/${code}`;
+  };
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success('Kod panoya kopyalandı');
+  };
+
+  const copyLink = (code: string) => {
+    navigator.clipboard.writeText(getInviteLink(code));
+    toast.success('Davet linki panoya kopyalandı');
   };
 
   if (isLoading) {
@@ -369,7 +385,10 @@ export const InviteCodePanel: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => copyCode(code.code)}>
+                          <Button variant="ghost" size="icon" onClick={() => copyLink(code.code)} title="Linki kopyala">
+                            <Link2 className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => copyCode(code.code)} title="Kodu kopyala">
                             <Copy className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(code.id)}>

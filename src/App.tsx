@@ -26,6 +26,7 @@ import { ParentTrackingPage } from "./pages/ParentTrackingPage";
 import { PageAccessPage } from "./pages/PageAccessPage";
 import { SupportPage } from "./pages/SupportPage";
 import NotFound from "./pages/NotFound";
+import { InvitePage } from "./pages/InvitePage";
 
 // Layout
 import { AppLayout } from "./components/layout/AppLayout";
@@ -45,6 +46,7 @@ const App = () => (
               
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/davet/:code" element={<InvitePage />} />
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/konu-anlatimi" element={<KonuAnlatimiPage />} />
