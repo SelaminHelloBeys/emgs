@@ -166,7 +166,14 @@ export const InviteCodePanel: React.FC = () => {
       console.error('Error creating code:', error);
       toast.error('Kod oluşturulamadı');
     } else {
-      toast.success(`Kod oluşturuldu: ${code}`);
+      const link = getInviteLink(code);
+      navigator.clipboard.writeText(link);
+      toast.success(
+        <div className="space-y-1">
+          <p className="font-medium">Kod oluşturuldu ve link kopyalandı!</p>
+          <p className="text-xs text-muted-foreground font-mono break-all">{link}</p>
+        </div>
+      );
       setFormData({ target_name: '', target_role: 'ogrenci', target_school: '', target_class: '' });
       setIsOpen(false);
       fetchCodes();
