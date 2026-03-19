@@ -684,6 +684,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_invite_code: {
+        Args: { _code: string; _user_id: string }
+        Returns: boolean
+      }
       can_create_announcements: { Args: { _user_id: string }; Returns: boolean }
       can_create_content: { Args: { _user_id: string }; Returns: boolean }
       generate_parent_code: { Args: never; Returns: string }
