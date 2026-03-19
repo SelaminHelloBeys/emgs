@@ -222,9 +222,18 @@ export const InviteCodePanel: React.FC = () => {
     }
   };
 
+  const getInviteLink = (code: string) => {
+    return `${window.location.origin}/davet/${code}`;
+  };
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success('Kod panoya kopyalandı');
+  };
+
+  const copyLink = (code: string) => {
+    navigator.clipboard.writeText(getInviteLink(code));
+    toast.success('Davet linki panoya kopyalandı');
   };
 
   if (isLoading) {
