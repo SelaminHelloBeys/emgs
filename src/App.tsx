@@ -26,6 +26,7 @@ import { ParentTrackingPage } from "./pages/ParentTrackingPage";
 import { PageAccessPage } from "./pages/PageAccessPage";
 import { SupportPage } from "./pages/SupportPage";
 import NotFound from "./pages/NotFound";
+import { InvitePage } from "./pages/InvitePage";
 
 // Layout
 import { AppLayout } from "./components/layout/AppLayout";
