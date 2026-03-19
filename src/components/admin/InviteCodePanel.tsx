@@ -385,7 +385,10 @@ export const InviteCodePanel: React.FC = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => copyCode(code.code)}>
+                          <Button variant="ghost" size="icon" onClick={() => copyLink(code.code)} title="Linki kopyala">
+                            <Link2 className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => copyCode(code.code)} title="Kodu kopyala">
                             <Copy className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(code.id)}>
