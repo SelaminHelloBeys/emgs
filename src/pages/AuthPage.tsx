@@ -238,6 +238,7 @@ export const AuthPage: React.FC = () => {
   const handleContinueAfterSchool = () => { if (selectedSchool) setStep('class'); };
   const handleClassSelect = (className: string) => setSelectedClass(className);
 
+  const [legalOk, setLegalOk] = useState(false);
   const handleFinalSubmit = async () => {
     if (!selectedRole || !selectedSchool || !selectedClass) return;
     setIsLoading(true);
@@ -723,6 +724,13 @@ export const AuthPage: React.FC = () => {
               })}
             </div>
 
+            <label className="flex items-start gap-2 text-xs text-muted-foreground max-w-md mx-auto text-left">
+              <input type="checkbox" checked={legalOk} onChange={(e) => setLegalOk(e.target.checked)} className="mt-0.5 accent-primary" />
+              <span>
+                <a href="/yasal/kullanim-sartlari" target="_blank" className="underline text-foreground">Kullanım Şartları</a> ve{' '}
+                <a href="/yasal/gizlilik" target="_blank" className="underline text-foreground">Gizlilik Politikası</a>'nı okudum. 13 yaşından büyüğüm; 18 yaşından küçüksem velimin onayı var.
+              </span>
+            </label>
             <div className="flex justify-center gap-3">
               <Button variant="ghost" onClick={() => setStep('school')} className="gap-2 rounded-xl">
                 <ArrowLeft className="w-4 h-4" /> Geri
@@ -730,7 +738,7 @@ export const AuthPage: React.FC = () => {
               <Button
                 variant="apple"
                 size="lg"
-                disabled={!selectedClass || isLoading}
+                disabled={!selectedClass || isLoading || !legalOk}
                 onClick={handleFinalSubmit}
                 className="gap-2 rounded-xl shadow-apple-md hover:shadow-apple-lg transition-all duration-300"
               >

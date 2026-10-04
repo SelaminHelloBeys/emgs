@@ -87,7 +87,7 @@ export default {
         "apple-md": "0 4px 12px hsla(0, 0%, 0%, 0.08)",
         "apple-lg": "0 8px 24px hsla(0, 0%, 0%, 0.12)",
         "apple-xl": "0 16px 48px hsla(0, 0%, 0%, 0.16)",
-        "apple-glow": "0 0 24px hsla(211, 100%, 50%, 0.25)",
+        "apple-glow": "0 1px 2px hsla(0,0%,0%,0.06)",
       },
       keyframes: {
         "accordion-down": {

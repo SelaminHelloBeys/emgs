@@ -18,7 +18,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-apple-sm hover:shadow-apple-md hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        apple: "bg-primary text-primary-foreground shadow-apple-md hover:shadow-apple-glow hover:brightness-105",
+        apple: "bg-primary text-primary-foreground shadow-apple-md hover:brightness-105",
         appleSecondary: "bg-muted text-foreground hover:bg-muted/80 shadow-apple-sm",
         appleGhost: "text-primary hover:bg-primary/10 rounded-xl",
         glass: "bg-background/80 backdrop-blur-lg border border-border/50 text-foreground hover:bg-background/90 shadow-apple-sm",
