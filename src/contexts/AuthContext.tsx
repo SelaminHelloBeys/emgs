@@ -66,18 +66,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(profileData as Profile);
     }
 
-    // Fetch role
-    const { data: roleData } = await supabase
+    // Fetch role (a user may have more than one row; pick highest priority)
+    const { data: rolesData } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (roleData) {
-      setRole(roleData.role as UserRole);
+      .eq('user_id', userId);
+    const priority: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'veli', 'ogrenci'];
+    const roles = (rolesData ?? []).map(r => r.role as UserRole);
+    const best = priority.find(p => roles.includes(p)) ?? null;
+
+    if (best && profileData) {
+      setRole(best);
       setNeedsProfileCompletion(false);
     } else {
-      // No role means user needs to complete profile (OAuth flow)
+      // Missing profile/role (e.g. OAuth or broken signup) -> complete profile
+      setRole(best);
       setNeedsProfileCompletion(true);
     }
   };
@@ -184,8 +187,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error: new Error('No user logged in') };
     }
 
-    // Update profile (role is already set by trigger as 'ogrenci')
-    // If user requested teacher role, it needs admin approval
+    // Make sure profile + default role rows exist before updating
+    await supabase.rpc('ensure_user_setup' as any);
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ 
