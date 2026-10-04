@@ -23,7 +23,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   closed: { label: 'Kapatıldı', color: 'bg-muted text-muted-foreground' },
 };
 
-export const SupportPage: React.FC = () => {
+export const SupportPage: React.FC<{ embedded?: boolean }> = () => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);

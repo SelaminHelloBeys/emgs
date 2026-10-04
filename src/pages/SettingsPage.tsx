@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { SupportPage } from './SupportPage';
+import { LifeBuoy } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -254,7 +256,7 @@ export const SettingsPage: React.FC = () => {
         <p className="text-sm sm:text-base text-muted-foreground">Hesap ve uygulama ayarları</p>
       </div>
 
-      <Tabs defaultValue="account" className="space-y-4 sm:space-y-6">
+      <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") || "account"} className="space-y-4 sm:space-y-6">
         <TabsList className="flex flex-wrap gap-1 h-auto p-1 overflow-x-auto max-w-full">
           <TabsTrigger value="account" className="gap-1.5 text-xs sm:text-sm">
             <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -294,6 +296,10 @@ export const SettingsPage: React.FC = () => {
           <TabsTrigger value="premium" className="gap-1.5 text-xs sm:text-sm">
             <span className="text-sm sm:text-lg">💎</span>
             Premium
+          </TabsTrigger>
+          <TabsTrigger value="support" className="gap-1.5 text-xs sm:text-sm">
+            <LifeBuoy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            Destek ve Veri
           </TabsTrigger>
           <TabsTrigger value="about" className="gap-1.5 text-xs sm:text-sm">
             <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -789,6 +795,25 @@ export const SettingsPage: React.FC = () => {
         </TabsContent>
 
         {/* About Tab */}
+        <TabsContent value="support" className="space-y-6">
+          <SupportPage embedded />
+          <Card className="p-5 space-y-3">
+            <h3 className="font-semibold">Verilerim</h3>
+            <p className="text-sm text-muted-foreground">Hesabınızın ve tüm ilişkili verilerin (ilerleme, rozetler, ödev teslimleri) silinmesini talep edebilirsiniz. Talep 30 gün içinde sonuçlandırılır.</p>
+            <Button variant="destructive" size="sm" onClick={async () => {
+              if (!user || !confirm('Hesabınızın ve tüm verilerinizin silinmesini talep etmek istediğinize emin misiniz?')) return;
+              const { error } = await supabase.from('support_tickets').insert({ user_id: user.id, subject: 'Veri silme talebi (KVKK)', message: 'Hesabımın ve tüm kişisel verilerimin silinmesini talep ediyorum.', priority: 'high' });
+              error ? toast.error('Talep gönderilemedi') : toast.success('Silme talebiniz alındı');
+            }}>Veri silme talebi gönder</Button>
+            <div className="flex flex-wrap gap-3 text-sm pt-2">
+              <a href="/yasal/gizlilik" className="underline">Gizlilik</a>
+              <a href="/yasal/kullanim-sartlari" className="underline">Kullanım Şartları</a>
+              <a href="/yasal/iade" className="underline">İade</a>
+              <a href="/yasal/cerezler" className="underline">Çerezler</a>
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="about" className="space-y-6">
           <Card variant="elevated" className="p-6">
             <div className="flex items-center gap-4 mb-6">

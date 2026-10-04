@@ -27,6 +27,8 @@ import { PageAccessPage } from "./pages/PageAccessPage";
 import { SupportPage } from "./pages/SupportPage";
 import NotFound from "./pages/NotFound";
 import { InvitePage } from "./pages/InvitePage";
+import { LegalPage } from "./pages/LegalPage";
+import { CookieBanner } from "./components/CookieBanner";
 
 // Layout
 import { AppLayout } from "./components/layout/AppLayout";
@@ -46,6 +48,7 @@ const App = () => (
               
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/yasal/:slug" element={<LegalPage />} />
                 <Route path="/davet/:code" element={<InvitePage />} />
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<Dashboard />} />
@@ -63,11 +66,12 @@ const App = () => (
                   <Route path="/optik-okuyucu" element={<OpticalReaderPage />} />
                   <Route path="/cocuk-takibi" element={<ParentTrackingPage />} />
                   <Route path="/sayfa-erisimi" element={<PageAccessPage />} />
-                  <Route path="/destek" element={<SupportPage />} />
+                  <Route path="/destek" element={<Navigate to="/settings?tab=support" replace />} />
                 </Route>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <CookieBanner />
             </BadgeNotification>
           </BrowserRouter>
         </TooltipProvider>
