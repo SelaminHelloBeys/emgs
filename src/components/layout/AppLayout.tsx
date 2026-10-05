@@ -24,7 +24,7 @@ interface PlatformModes {
 }
 
 export const AppLayout: React.FC = () => {
-  const { user, isAuthenticated, role } = useAuth();
+  const { user, isAuthenticated, role, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { isPageInMaintenance } = usePageMaintenance();
@@ -97,10 +97,10 @@ export const AppLayout: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/auth');
     }
-  }, [isAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   // Play login sound once on mount
   const soundPlayedRef = useRef(false);
