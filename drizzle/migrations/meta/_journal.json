@@ -22,6 +22,13 @@
       "when": 1791205884578,
       "tag": "0002_robust_user_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791206203697,
+      "tag": "0003_create_redeem_parent_code",
+      "breakpoints": true
     }
   ]
 }
