@@ -726,6 +726,7 @@ export type Database = {
         Args: { _parent_id: string; _student_id: string }
         Returns: boolean
       }
+      redeem_parent_code: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role:
