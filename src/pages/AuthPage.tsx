@@ -263,7 +263,20 @@ export const AuthPage: React.FC = () => {
 
     const { error } = await signUp(email, password, selectedRole as UserRole, name, selectedSchool, selectedClass);
     setIsLoading(false);
-    if (error) { toast.error(error.message || 'Kayıt olurken hata oluştu'); return; }
+    if (error) {
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('already') || msg.includes('registered')) {
+        toast.error('Bu e-posta ile zaten bir hesap var. Lütfen giriş yapın. (EMG-REG-409)');
+        setStep('credentials'); setMode('login');
+      } else if (msg.includes('password')) {
+        toast.error('Şifre en az 6 karakter olmalı ve tahmin edilmesi zor olmalı. (EMG-REG-422)');
+      } else if (msg.includes('rate') || msg.includes('too many')) {
+        toast.error('Çok fazla deneme yapıldı, biraz bekleyip tekrar deneyin. (EMG-REG-429)');
+      } else {
+        toast.error(`Kayıt olurken hata oluştu: ${error.message} (EMG-REG-500)`);
+      }
+      return;
+    }
     toast.success('Kayıt başarılı! Giriş yapılıyor...');
 
     // For veli role, mark parent code as used after successful signup

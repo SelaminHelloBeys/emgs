@@ -15,6 +15,13 @@
       "when": 1791204997118,
       "tag": "0001_fix_role_read",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791205884578,
+      "tag": "0002_robust_user_setup",
+      "breakpoints": true
     }
   ]
 }
