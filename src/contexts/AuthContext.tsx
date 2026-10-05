@@ -99,9 +99,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          if (event === 'SIGNED_IN') setIsLoading(true);
           // Defer Supabase calls with setTimeout
           setTimeout(() => {
-            fetchProfileAndRole(session.user.id);
+            fetchProfileAndRole(session.user.id).finally(() => setIsLoading(false));
           }, 0);
         } else {
           setProfile(null);
