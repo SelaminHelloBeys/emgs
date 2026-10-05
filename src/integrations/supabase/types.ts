@@ -712,6 +712,7 @@ export type Database = {
           question_text: string
         }[]
       }
+      get_my_role: { Args: never; Returns: string }
       has_completed_exam: { Args: { p_exam_id: string }; Returns: boolean }
       has_role: {
         Args: {

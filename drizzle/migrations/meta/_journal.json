@@ -8,6 +8,13 @@
       "when": 1791136944982,
       "tag": "0000_ensure_user_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791204997118,
+      "tag": "0001_fix_role_read",
+      "breakpoints": true
     }
   ]
 }

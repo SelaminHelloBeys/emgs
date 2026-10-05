@@ -55,7 +55,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [needsProfileCompletion, setNeedsProfileCompletion] = useState(false);
 
   const fetchProfileAndRole = async (userId: string) => {
-    // Fetch profile
+    // Ensure profile/role rows exist (idempotent)
+    await supabase.rpc('ensure_user_setup' as any);
+
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
@@ -66,14 +68,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(profileData as Profile);
     }
 
-    // Fetch role (a user may have more than one row; pick highest priority)
-    const { data: rolesData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-    const priority: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'veli', 'ogrenci'];
-    const roles = (rolesData ?? []).map(r => r.role as UserRole);
-    const best = priority.find(p => roles.includes(p)) ?? null;
+    // Role via security-definer RPC, table fallback
+    const { data: rpcRole } = await supabase.rpc('get_my_role' as any);
+    let best = (rpcRole as UserRole | null) ?? null;
+    if (!best) {
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+      const priority: UserRole[] = ['yonetici', 'admin', 'mudur', 'mudur_yardimcisi', 'rehber', 'ogretmen', 'veli', 'ogrenci'];
+      const roles = (rolesData ?? []).map(r => r.role as UserRole);
+      best = priority.find(p => roles.includes(p)) ?? null;
+    }
 
     if (best && profileData) {
       setRole(best);
