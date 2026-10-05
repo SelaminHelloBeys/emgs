@@ -165,6 +165,15 @@ export const AuthPage: React.FC = () => {
       toast.error(error.message || 'Giriş yapılırken hata oluştu');
       return;
     }
+    setTimeout(() => {
+      const p = window.location.pathname;
+      if (p !== '/dashboard' && p !== '/') {
+        toast.error('Giriş tamamlanamadı, ana sayfaya ulaşılamadı.', {
+          description: `Hata kodu: EMG-AUTH-${p === '/auth' ? '401' : '404'} (${p})`,
+          duration: 10000,
+        });
+      }
+    }, 6000);
     await new Promise(r => setTimeout(r, 1200));
     setIsLoading(false);
   };
