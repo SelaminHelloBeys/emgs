@@ -34,11 +34,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   needsProfileCompletion: boolean;
-  signUp: (email: string, password: string, role: UserRole, name?: string, schoolName?: string, className?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, role: UserRole, name?: string, schoolName?: string, className?: string) => Promise<{ error: Error | null; needsEmailConfirm: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   completeProfile: (name: string, role: UserRole, schoolName: string, className: string) => Promise<{ error: Error | null }>;
+  refreshProfile: () => Promise<void>;
   canCreateAnnouncements: boolean;
   canCreateContent: boolean;
   isAdmin: boolean;
@@ -154,12 +155,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
-      return { error };
+      return { error, needsEmailConfirm: false };
     }
 
-    // Profile is auto-created by database trigger using metadata
-    // No need to update profile here - trigger reads from raw_user_meta_data
-    return { error: null };
+    // When email confirmation is off, signUp already opens a session —
+    // no second login call is needed.
+    return { error: null, needsEmailConfirm: !data.session };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -223,6 +224,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: null };
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    await fetchProfileAndRole(user.id);
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -253,6 +259,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signInWithGoogle,
       signOut,
       completeProfile,
+      refreshProfile,
       canCreateAnnouncements,
       canCreateContent,
       isAdmin,
